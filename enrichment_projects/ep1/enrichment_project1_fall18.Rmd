@@ -1,0 +1,46 @@
+---
+title: "Enrichment Project #1: Rank-based Methods"
+author: 
+  - Yuan Gao  
+  - Kevin Lee 
+  - Akshay Govindaraj 
+  - Yijun (Emma) Wan 
+  - Peter Williams
+  - Ruixuan Zhang
+  
+  - ygao390 | kylee20 | ywan40 | agovindaraj6 | pwilliams60 | rzhang438 | @gatech.edu
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### 1) Two-sample Studies (40%):
+*Locate a data set in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the following procedures for two-sample studies.*  
+
+1. Calculate Pearson and Spearman coefficient of correlation and Kendall’s Tau. Use a Bootstrap resampling procedure with B = #bootstrap-samples = 1000 to assess the standard deviation (sd) of three estimates. Comment on your findings.   
+  
+2. Apply Wilcoxon Signed Rank Test, Wilcoxon Sum Rank Test, Mann-Whitney U Test to compare two samples. For each test please state clearly what distribution is used to calculate the p-value.  
+  
+3. Use Conover test for equal variances in these two samples. Explain how to calculate its p-value.  
+
+4. Use the parametric F-test for equal variances to the data; comment on the difference of the assumptions and results compared to them in (iii).  
+
+5. Depending on the outcomes from the F-test in (iv), apply an appropriate parametric two- sample t-test to the data; comment on the difference of the assumptions and results compared to them in (ii).  
+
+6. Apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality to the two samples separately; comment on the findings by comparing results obtained from these four tests. Make a statement about the situation that a particular procedure might be more appropriate. Moreover, based on the results learned here, comment on whether the parametric methods used in (iv) and (v) are appropriate.  
+
+
+### 2) Multiple-Sample (ANOVA) Studies (60%):
+*Locate one data set each for the two problems below in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the following procedures for ANOVA studies.*  
+
+1. Apply Kriskal-Wallis Test for an one-way ANOVA study. If it is suitable, perform a K- W pairwise comparisons. Make conclusions about your findings.  
+
+2. Use Friedman test and also the F-Test discussed in the textbook page 148 for the study of one-way ANOVA with one blocking variable. Comment on your findings. If it is suitable, perform a K-W pairwise comparisons. Make conclusions about your findings.  
+
+3. Conduct a variance test based on the procedure (Conover test) given in Section 8.3 textbook. Comment on your findings.  
+
+4. Repeat the same studies in (i), (ii) and (iii) using parametric approaches (also include the possible pairwise comparisons). State the assumptions needed for the parametric approaches. Compare the results here against those in (i), (ii) and (iii), respectively. Note that if there are certain assumptions (e.g., normality and equal-variance) required in the parametric studies, please apply appropriate procedures to “test” the assumption.  
+
