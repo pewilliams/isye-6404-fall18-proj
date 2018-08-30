@@ -1,0 +1,11 @@
+Data notes: 
+
+Two Sample Tests:
+
+Chicago Transit Authority - Ridership - Daily Boarding Totals
+path: enrichment_projects/ep1/data/CTA_-_Ridership_-_Daily_Boarding_Totals.csv
+
+Description: 
+This dataset shows systemwide boardings for both bus and rail services provided by CTA, dating back to 2001. Daytypes are as follows: W = Weekday, A = Saturday, U = Sunday/Holiday. See attached readme file for information on how these numbers are calculated.
+
+Source: https://catalog.data.gov/dataset/cta-ridership-daily-boarding-totals-4657b

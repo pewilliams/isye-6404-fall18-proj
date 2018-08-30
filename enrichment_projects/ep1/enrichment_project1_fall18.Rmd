@@ -1,14 +1,10 @@
 ---
 title: "Enrichment Project #1: Rank-based Methods"
 author: 
-  - Yuan Gao  
-  - Kevin Lee 
-  - Akshay Govindaraj 
-  - Yijun (Emma) Wan 
-  - Peter Williams
-  - Ruixuan Zhang
+  - Yuan Gao, Kevin Lee, Akshay Govindaraj 
+  - Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang
   
-  - ygao390 | kylee20 | ywan40 | agovindaraj6 | pwilliams60 | rzhang438 | @gatech.edu
+  - ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output: pdf_document
 ---
@@ -20,27 +16,77 @@ knitr::opts_chunk$set(echo = TRUE)
 ### 1) Two-sample Studies (40%):
 *Locate a data set in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the following procedures for two-sample studies.*  
 
-1. Calculate Pearson and Spearman coefficient of correlation and Kendall’s Tau. Use a Bootstrap resampling procedure with B = #bootstrap-samples = 1000 to assess the standard deviation (sd) of three estimates. Comment on your findings.   
+For our two-sample study, we have selected a dataset published by the City of Chicago Transit Authority (CTA) that details daily ridership numbers (system-wide boarding totals) for both bus and rail services. As a pre-processing step, we take a subset of the original dataset that consists of weekday ridership only (weekends, and holidays excluded) for 2017 and 2018. Below is a quick preview of the dataset and pre-processing steps: 
+
+```{r preview, include=T}
+rider_data <- read.csv(
+  'data/CTA_-_Ridership_-_Daily_Boarding_Totals.csv',
+                       header = T,stringsAsFactors = F)
+#subset data to just weekdays
+rider_data <- rider_data[rider_data$day_type == 'W',]
+rider_data <- transform(rider_data, service_date = as.Date(service_date, '%m/%d/%y'))
+#subset data to 2017 and 2018 rides only
+rider_data <- rider_data[format(rider_data$service_date, '%Y') %in% c('2017','2018'),]
+knitr::kable(head(rider_data,n=5),row.names = F)
+```
+
+*1. Calculate Pearson and Spearman coefficient of correlation and Kendall’s Tau. Use a Bootstrap resampling procedure with B = #bootstrap-samples = 1000 to assess the standard deviation (sd) of three estimates. Comment on your findings.*  
+
+To begin we compute all three statistics using methods in base R, reported here: 
+```{r correl, include=T,echo=F}
+paste0("Pearson's Correlation: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,method = "pearson")),digits=3))
+paste0("Spearman's Correlation: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,method = "spearman")),digits=3))
+paste0("Kendall's Tau: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,method = "kendall")),digits=3))
+```
+We then compute these statistics using $B=1000$ bootstrap samples based on our original dataset, which consists of `r nrow(rider_data)` observations. Code and details are below. As shown in the table of results, bootstrap sample statistics for spearman's rank were more dispersed than for other statistics.  
+```{r bstrap, include=T,echo=T, height = 4}
+#set the number of bootstrap samples (with replacement - n = 318)
+B <- 1000
+#replicate process of collecting sample from original dataset, and compute sample stats 
+#results stored in: cor_result, with 1000 obs of bootstrap sample stats
+#note this process takes a few seconds on a standard laptop
+cor_result <- do.call('rbind',lapply(1:B, function(x){
+  bootstrap_sample <- rider_data[sample(1:nrow(rider_data),
+                                        size=nrow(rider_data), replace=T),]
+  data.frame(pearson = cor(bootstrap_sample$bus,bootstrap_sample$rail_boardings, 
+                           method = 'pearson'),
+             spearman = cor(bootstrap_sample$bus,bootstrap_sample$rail_boardings, 
+                            method = 'spearman'),
+             kendall = cor(bootstrap_sample$bus,bootstrap_sample$rail_boardings, 
+                           method = 'kendall'))
+}))
+knitr::kable(round(data.frame(lapply(cor_result, sd)),digits=4),row.names=F,
+             caption = 'Sample Standard Deviation: Bootstrap Sample Correlation')
+```
+
+Density plots of these statistics are shown here, further visual confirmation that the spearman rank correlation results are more dispersed than others: 
+
+```{r den_cor, include=T,echo=F,fig.align = 'center',fig.height = 3}
+library(ggplot2)
+library(reshape2)
+melt_cor_result <- melt(cor_result, measure.vars = c('pearson','spearman','kendall'))
+ggplot(melt_cor_result, aes(x = value, fill = variable)) + geom_density(alpha = 0.3) + theme_bw() + xlab('Boostrap Sample Correlation') + ggtitle('Density Plots: Bootstrap Sample Correlations')
+```
   
-2. Apply Wilcoxon Signed Rank Test, Wilcoxon Sum Rank Test, Mann-Whitney U Test to compare two samples. For each test please state clearly what distribution is used to calculate the p-value.  
+*2. Apply Wilcoxon Signed Rank Test, Wilcoxon Sum Rank Test, Mann-Whitney U Test to compare two samples. For each test please state clearly what distribution is used to calculate the p-value.*  
   
-3. Use Conover test for equal variances in these two samples. Explain how to calculate its p-value.  
+*3. Use Conover test for equal variances in these two samples. Explain how to calculate its p-value.*  
 
-4. Use the parametric F-test for equal variances to the data; comment on the difference of the assumptions and results compared to them in (iii).  
+*4. Use the parametric F-test for equal variances to the data; comment on the difference of the assumptions and results compared to them in (iii).*  
 
-5. Depending on the outcomes from the F-test in (iv), apply an appropriate parametric two- sample t-test to the data; comment on the difference of the assumptions and results compared to them in (ii).  
+*5. Depending on the outcomes from the F-test in (iv), apply an appropriate parametric two- sample t-test to the data; comment on the difference of the assumptions and results compared to them in (ii).*  
 
-6. Apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality to the two samples separately; comment on the findings by comparing results obtained from these four tests. Make a statement about the situation that a particular procedure might be more appropriate. Moreover, based on the results learned here, comment on whether the parametric methods used in (iv) and (v) are appropriate.  
+*6. Apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality to the two samples separately; comment on the findings by comparing results obtained from these four tests. Make a statement about the situation that a particular procedure might be more appropriate. Moreover, based on the results learned here, comment on whether the parametric methods used in (iv) and (v) are appropriate.*  
 
 
 ### 2) Multiple-Sample (ANOVA) Studies (60%):
 *Locate one data set each for the two problems below in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the following procedures for ANOVA studies.*  
 
-1. Apply Kriskal-Wallis Test for an one-way ANOVA study. If it is suitable, perform a K- W pairwise comparisons. Make conclusions about your findings.  
+*1. Apply Kriskal-Wallis Test for an one-way ANOVA study. If it is suitable, perform a K- W pairwise comparisons. Make conclusions about your findings.*  
 
-2. Use Friedman test and also the F-Test discussed in the textbook page 148 for the study of one-way ANOVA with one blocking variable. Comment on your findings. If it is suitable, perform a K-W pairwise comparisons. Make conclusions about your findings.  
+*2. Use Friedman test and also the F-Test discussed in the textbook page 148 for the study of one-way ANOVA with one blocking variable. Comment on your findings. If it is suitable, perform a K-W pairwise comparisons. Make conclusions about your findings.*  
 
-3. Conduct a variance test based on the procedure (Conover test) given in Section 8.3 textbook. Comment on your findings.  
+*3. Conduct a variance test based on the procedure (Conover test) given in Section 8.3 textbook. Comment on your findings.*  
 
-4. Repeat the same studies in (i), (ii) and (iii) using parametric approaches (also include the possible pairwise comparisons). State the assumptions needed for the parametric approaches. Compare the results here against those in (i), (ii) and (iii), respectively. Note that if there are certain assumptions (e.g., normality and equal-variance) required in the parametric studies, please apply appropriate procedures to “test” the assumption.  
+*4. Repeat the same studies in (i), (ii) and (iii) using parametric approaches (also include the possible pairwise comparisons). State the assumptions needed for the parametric approaches. Compare the results here against those in (i), (ii) and (iii), respectively. Note that if there are certain assumptions (e.g., normality and equal-variance) required in the parametric studies, please apply appropriate procedures to “test” the assumption.*  
 
