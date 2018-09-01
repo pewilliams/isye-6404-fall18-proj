@@ -7,10 +7,14 @@ author:
   - ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output: pdf_document
+fontsize: 11pt
+geometry: margin=1in
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+suppressPackageStartupMessages(library(printr))
+suppressPackageStartupMessages(library(conover.test))
 ```
 
 ### 1) Two-sample Studies (40%):
@@ -61,7 +65,7 @@ knitr::kable(round(data.frame(lapply(cor_result, sd)),digits=4),row.names=F,
 
 Density plots of these statistics are shown here, further visual confirmation that the spearman rank correlation results are more dispersed than others: 
 
-```{r den_cor, include=T,echo=F,fig.align = 'center',fig.height = 3}
+```{r den_cor, include=T,echo=T,fig.align = 'center',fig.height = 3}
 library(ggplot2)
 library(reshape2)
 melt_cor_result <- melt(cor_result, measure.vars = c('pearson','spearman','kendall'))
@@ -71,6 +75,26 @@ ggplot(melt_cor_result, aes(x = value, fill = variable)) + geom_density(alpha = 
 *2. Apply Wilcoxon Signed Rank Test, Wilcoxon Sum Rank Test, Mann-Whitney U Test to compare two samples. For each test please state clearly what distribution is used to calculate the p-value.*  
   
 *3. Use Conover test for equal variances in these two samples. Explain how to calculate its p-value.*  
+
+A histogram visualizing the counts of daily bus and rail ridership illustrates that there are likely differences in the variance of daily ridership. Rail ridership tends to be more tightly group around its central point, than bus ridership which is more spread out as shown here: 
+
+```{r histo, include = T, echo=T, fig.align='center',fig.height=3}
+boardings <- c(rider_data$bus, rider_data$rail_boardings)
+factor_level <- factor(c(rep('bus',nrow(rider_data)), rep('rail',nrow(rider_data))))
+ggplot(NULL,aes(x = boardings, fill = factor_level)) + 
+  geom_histogram(bins = sqrt(nrow(rider_data)) ) + theme_bw() + 
+  ggtitle("Histogram - CTA Daily Boardings by Rail | Bus")
+```
+
+To explore this further we utilize the two-sided Conover test to test the hypothesis $H_0: \sigma^2_X = \sigma^2_Y$, where samples $X_1,...,X_{n1}$, and $Y_1,...,Y_{n_2}$ refer to samples from daily ridership of bus and rail. The output of the test utilizing the 'conover.test' function from R is shown below:  
+
+```{r conover, echo =T, include = T}
+#alt = 0 -> test hypothesis sigma^2_x \neq sigma^2_y
+con_test <- conover.test(x = boardings, g = factor_level,alpha = 0.05, altp = 0, method = 'bonferroni')
+con_test
+```
+  
+Since our test statistic $T* = $ `r round(con_test$T,digits=3)`, is outside the region (`r qnorm(0.025)`,`r qnorm(0.975)`), we can reject $H_0$ in favor of the alternative, that is $\sigma^2_{X} \neq \sigma^2_{Y}$. 
 
 *4. Use the parametric F-test for equal variances to the data; comment on the difference of the assumptions and results compared to them in (iii).*  
 
