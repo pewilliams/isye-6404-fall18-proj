@@ -147,7 +147,31 @@ $$D^2 = \frac{1}{N-1}[\sum^{g}_{k=1}\sum^{n_k}_{i=1}R^4_{ki}-N\overline{S}^2]$$
  If the assumptions are met, the distribution of this test statistic follows approximately the Chi-squared distribution with degrees of freedom g - 1. And then, we can use the p-value of Chi-square distribution to get the p-value of conover test.
 
 *4. Use the parametric F-test for equal variances to the data; comment on the difference of the assumptions and results compared to them in (iii).*  
+F-test for testing equality of variance is used to test the hypothesis of the equality of two population variances.
+The test statistic can be obtained by computing the ratio of the two variances $S^2_A$ and $S^2_B$.
+$$F=\frac{S^2_A}{S^2_B}$$
 
+The degrees of freedom are $n_A−1$ (for the numerator) and $n_B−1$ (for the denominator). And, the more this ratio deviates from 1, the stronger the evidence for unequal population variances.
+
+```
+var.test(rider_data$bus, rider_data$rail_boardings, alternative = "two.sided")
+```
+The result shows that the p-value = 0.01772 which is smaller than our $\alpha = 0.05$. In conclusion, there is significant difference between the two variances.
+
+Assumptions for Conover and F-test:
+According to the above, the Conover test does not assume that all populations are normally distributed.
+However, F-test is very sensitive to departure from the normal assumption.We use Q-Q plot (quantile-quantile plot) to graphically evaluate the normality of a variable.
+'''
+qqnorm(rider_data$bus, pch = 1, frame = FALSE)
+qqline(rider_data$bus, col = "steelblue", lwd = 2)
+library("car")
+qqPlot(rider_data$bus)
+'''
+As we can see, there are many points don't fall approximately along this reference line, so, we can not assume normality.
+
+Results for Conover and F-test:
+Although the results are consistent based on this sample, Conover test is recommended when the normality assumption is not viable.
+As a result, use F-test on the data has shortcomings compared to use Conover test.
 *5. Depending on the outcomes from the F-test in (iv), apply an appropriate parametric two- sample t-test to the data; comment on the difference of the assumptions and results compared to them in (ii).*  
 
 *6. Apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality to the two samples separately; comment on the findings by comparing results obtained from these four tests. Make a statement about the situation that a particular procedure might be more appropriate. Moreover, based on the results learned here, comment on whether the parametric methods used in (iv) and (v) are appropriate.*  
