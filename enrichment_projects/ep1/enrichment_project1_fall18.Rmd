@@ -180,7 +180,13 @@ As a result, use F-test on the data has shortcomings compared to use Conover tes
 
 *5. Depending on the outcomes from the F-test in (iv), apply an appropriate parametric two- sample t-test to the data; comment on the difference of the assumptions and results compared to them in (ii).*  
 
+As seen in the histograms and Q-Q plots for the ridership data, both of our two samples (bus ridership and rail boardings) do not follow a normal distribution, but they both have fairly large sample sizes. In utilizing the two sample t-test, some assumptions must first be made. One such assumption is an underlying normal distribution, which we can see is not the case with our current data. Despite this, we will continue with our performance of the Welch's T-test. Welch's T-test is a robust test similar to the student's t-test, with the advantage of accounting for unequal variances. Welch's T-test is also more appropriate for more skewed data as compared to the standard two sample t-test. Similar to the nonparametric tests performed (Mann-Whitney U), the data must be continuous. 
 
+```
+#Performing Welch's T-test with assumed unequal variance
+t.test(rider_data$bus,rider_data$rail_boardings, var.equal=FALSE)
+```
+As we can see from the results of the test, the p-value is quite low, showing that there is a significant difference between the two means. In comparing the two tests, the parametric t-test tests for significance in difference between the means of the two samples, while the nonparametric tests (Mann-Whitney U) test for significance in differences between the medians of the two samples. As for the results, both the Mann-Whitney U test and Welch's T-test with assumed unequal variance show a significant difference in mean and median for the two samples.
 
 *6. Apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality to the two samples separately; comment on the findings by comparing results obtained from these four tests. Make a statement about the situation that a particular procedure might be more appropriate. Moreover, based on the results learned here, comment on whether the parametric methods used in (iv) and (v) are appropriate.*  
 
