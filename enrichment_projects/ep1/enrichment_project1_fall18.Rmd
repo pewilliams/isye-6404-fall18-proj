@@ -15,6 +15,8 @@ geometry: margin=1in
 knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(printr))
 suppressPackageStartupMessages(library(conover.test))
+suppressPackageStartupMessages(library(car))
+suppressPackageStartupMessages(library(nortest))
 ```
 
 ### 1) Two-sample Studies (40%):
@@ -28,9 +30,11 @@ rider_data <- read.csv(
                        header = T,stringsAsFactors = F)
 #subset data to just weekdays
 rider_data <- rider_data[rider_data$day_type == 'W',]
-rider_data <- transform(rider_data, service_date = as.Date(service_date, '%m/%d/%y'))
+rider_data <- transform(rider_data, service_date = as.Date(service_date, 
+                                                           '%m/%d/%y'))
 #subset data to 2017 and 2018 rides only
-rider_data <- rider_data[format(rider_data$service_date, '%Y') %in% c('2017','2018'),]
+rider_data <- rider_data[format(rider_data$service_date, '%Y') %in% 
+                           c('2017','2018'),]
 knitr::kable(head(rider_data,n=5),row.names = F)
 ```
 
@@ -38,9 +42,12 @@ knitr::kable(head(rider_data,n=5),row.names = F)
 
 To begin we compute all three statistics using methods in base R, reported here: 
 ```{r correl, include=T,echo=F}
-paste0("Pearson's Correlation: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,method = "pearson")),digits=3))
-paste0("Spearman's Correlation: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,method = "spearman")),digits=3))
-paste0("Kendall's Tau: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,method = "kendall")),digits=3))
+paste0("Pearson's Correlation: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,
+                                                             method = "pearson")),digits=3))
+paste0("Spearman's Correlation: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,
+                                                              method = "spearman")),digits=3))
+paste0("Kendall's Tau: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,
+                                                     method = "kendall")),digits=3))
 ```
 We then compute these statistics using $B=1000$ bootstrap samples based on our original dataset, which consists of `r nrow(rider_data)` observations. Code and details are below. As shown in the table of results, bootstrap sample statistics for spearman's rank were more dispersed than for other statistics.  
 ```{r bstrap, include=T,echo=T, height = 4}
@@ -78,36 +85,35 @@ ggplot(melt_cor_result, aes(x = value, fill = variable)) + geom_density(alpha = 
 
 Continuing on with the data given by the CTA on bus and rail ridership in 2017 and 2018, we can attempt to utilize the Wilcoxon Signed-Rank Test to determine whether there is a difference between paired data, but certain assumptions must first be met. In using the Wilcoxon Signed Rank Test, the data must be paired, the pairs must be independent, and the paired differences must be distributed symmetrically about 0 (the assumption that the pairs are drawn from the same population). The samples must also be from a nonnormal distribution. 
 
-```
+```{r histograms_non_normal, echo = T, include = F, fig.align='center',fig.height=3}
 #Checking that the distribution of each of the two samples is nonnormal
+par(mfrow=c(1,2))
 hist(rider_data$bus)
 hist(rider_data$rail_boardings)
 ```
 
 We can see with these histograms that the data is definitely not distributed normally, so at least one of the assumptions thus far is met. Despite this, the Signed Rank Test looks at the median difference between paired values, and our data is not considered "paired". Below is utilization of the Signed Rank Test function on R in spite of the inapplicability of the test.
 
-```
+```{r symmetry, echo = T, include= T}
 #Checking symmetry of distribution (differences between ridership for a given day)
 diff.rider= rider_data$bus-rider_data$rail_boardings
 hist(diff.rider) 
 #not symmetric around 0, so fails the assumption 
 #Wilcoxon Signed Rank Test
 wilcox.test(rider_data$bus, rider_data$rail_boardings, paired=TRUE) 
-
 # V = 49316, p-value < 2.2e-16
 # alternative hypothesis: true location shift is not equal to 0
 ```
 Instead, the better test to use in the case of our CTA data would be the Wilcoxon Ranked Sum Test. The goal of the Wilcoxon Ranked Sum Test is to effectively compare two populations with a continuous response variable and nonnormal distributions. Assuming the ridership count between the bus and rail systems are independent of each other and random, we can compare the two samples using the Wilcoxon Ranked Sum Test, without the assumption of paired data as required in the Wilcoxon Signed Rank Test.
 The Mann Whitney U Test accomplishes essentially the exact same purpose as the Wilcoxon Ranked Sum Test. The only differences are a differently labeled test statistic "U" compared to that of the Wilcoxon ranked sum test statistics "W" as well as the assumption that the shapes of the two population distributions are different (when using tests involving population means). They are even performed using the exact same function, with the "U" test statistic being equivalent to the "W" test statistics of the Wilcoxson Ranked Sum Test.
 
-```
+```{r wilcox_rank, echo = T, include = T}
 #Wilcoxon Ranked Sum Test 
 wilcox.test(rider_data$bus, rider_data$rail_boardings, paired=F)
 #W = 81592, p-value < 2.2e-16
 #alternative hypothesis: true location shift is not equal to 0
 ```
 
-  
   
 *3. Use Conover test for equal variances in these two samples. Explain how to calculate its p-value.*  
 
@@ -133,7 +139,7 @@ Since our test statistic $T* = $ `r round(con_test$T,digits=3)`, is outside the 
 
 The calculation of p-value:
 First, the test does not assume that all populations are normally distributed and is recommended when the normality assumption is not viable.
-Second, Suppose there are g groups obey normal distribution with possibly different means and standard deviations $σ_1, σ_2,…, σ_g$. Let $n_1, n_2, …, n_g$ denote the number of subjects in each group, $Y_{ki}$ denote response values, and N denote
+Second, Suppose there are g groups obey normal distribution with possibly different means and standard deviations $\sigma_1, \sigma_2,…, \sigma_g$. Let $n_1, n_2, …, n_g$ denote the number of subjects in each group, $Y_{ki}$ denote response values, and N denote
 the total sample size of all groups. The test assumes that the data are obtained by taking a simple random sample from each of the g populations.
 The formula for the calculation of Conover test is:
 
@@ -144,56 +150,57 @@ $$R_{ki} = Rank(Z_{ki})$$
 $$S_k = \sum^{n_k}_{i=1}R^2_{ki}$$
 $$\overline{S} = \frac{1}{N}\sum^{g}_{k=1}S_k$$
 $$D^2 = \frac{1}{N-1}[\sum^{g}_{k=1}\sum^{n_k}_{i=1}R^4_{ki}-N\overline{S}^2]$$
- If the assumptions are met, the distribution of this test statistic follows approximately the Chi-squared distribution with degrees of freedom g - 1. And then, we can use the p-value of Chi-square distribution to get the p-value of conover test.
+ If the assumptions are met, the distribution of this test statistic follows approximately the Chi-squared distribution with degrees of freedom $g-1$. And then, we can use the p-value of Chi-square distribution to get the p-value of conover test.
 
 *4. Use the parametric F-test for equal variances to the data; comment on the difference of the assumptions and results compared to them in (iii).*  
 F-test for testing equality of variance is used to test the hypothesis of the equality of two population variances.
 The test statistic can be obtained by computing the ratio of the two variances $S^2_A$ and $S^2_B$.
-$$F=\frac{S^2_A}{S^2_B}$$
+$$F=\frac{S^2_A}{S^2_B}$$  
+  
+The degrees of freedom are $n_A - 1$ (for the numerator) and $n_B - 1$ (for the denominator). And, the more this ratio deviates from $1$, the stronger the evidence for unequal population variances.
 
-The degrees of freedom are $n_A−1$ (for the numerator) and $n_B−1$ (for the denominator). And, the more this ratio deviates from 1, the stronger the evidence for unequal population variances.
-
-```
+```{r test_var, echo = T, include = T}
 var.test(rider_data$bus, rider_data$rail_boardings, alternative = "two.sided")
 ```
-The result shows that the p-value = 0.01772 which is smaller than our $\alpha = 0.05$. In conclusion, there is significant difference between the two variances.
+The result shows that the p-value $= 0.01772$ which is smaller than our $\alpha = 0.05$. In conclusion, there is significant difference between the two variances.
 
 Assumptions for Conover and F-test:
 According to the above, the Conover test does not assume that all populations are normally distributed.
 However, F-test is very sensitive to departure from the normal assumption.We use Q-Q plot (quantile-quantile plot) to graphically evaluate the normality of a variable.
-'''
+```{r qqplots, echo = T, include = T, fig.align='center',fig.height=3}
 qqnorm(rider_data$bus, pch = 1, frame = FALSE)
 qqline(rider_data$bus, col = "steelblue", lwd = 2)
-library("car")
 qqPlot(rider_data$bus)
-'''
-As we can see, there are many points don't fall approximately along this reference line, so, we can not assume normality.
+```
+As we can see, there are many points don't fall approximately along this reference line, so, we cannot assume normality.
 
 Results for Conover and F-test:
 Although the results are consistent based on this sample, Conover test is recommended when the normality assumption is not viable.
-As a result, use F-test on the data has shortcomings compared to use Conover test.
+As a result, use F-test on the data has shortcomings compared to use Conover test.  
+
 *5. Depending on the outcomes from the F-test in (iv), apply an appropriate parametric two- sample t-test to the data; comment on the difference of the assumptions and results compared to them in (ii).*  
+
+
 
 *6. Apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality to the two samples separately; comment on the findings by comparing results obtained from these four tests. Make a statement about the situation that a particular procedure might be more appropriate. Moreover, based on the results learned here, comment on whether the parametric methods used in (iv) and (v) are appropriate.*  
 
 Kolmogorov-Smirnov:
-```
+```{r ks.testing, echo = T, include = T}
 ks.test(rider_data$bus,"dnorm",mean(rider_data$bus),sd(rider_data$bus))
 ks.test(rider_data$rail_boardings,"dnorm",mean(rider_data$rail_boardings),sd(rider_data$rail_boardings))
 ```
-Anderson-Darlin:
-```
-library(nortest)
+Anderson-Darling:
+```{r adarling, echo = T, include = T}
 ad.test(rider_data$bus)
 ad.test(rider_data$rail_boardings)
 ```
 Cramer-Von Mises:
-```
+```{r cvm.test, echo = T, include = T}
 cvm.test(rider_data$bus)
 cvm.test(rider_data$rail_boardings)
 ```
 Shapiro-Wilk:
-```
+```{r sw.test, echo = T, include = T}
 shapiro.test(rider_data$bus)
 shapiro.test(rider_data$rail_boardings)
 ```
