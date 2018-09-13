@@ -28,7 +28,7 @@ For our two-sample study, we have selected a dataset published by the City of Ch
 
 ```{r preview, include=T, echo=F}
 rider_data <- read.csv(
-  'data/CTA_-_Ridership_-_Daily_Boarding_Totals.csv',
+  'data/CTA_Ridership_Normalized.csv',
                        header = T,stringsAsFactors = F)
 #subset data to just weekdays
 rider_data <- rider_data[rider_data$day_type == 'W',]
@@ -91,7 +91,6 @@ Continuing on with the data given by the CTA on bus and rail ridership in 2017 a
 
 ```{r histograms_non_normal, echo = T, include = F, fig.align='center',fig.height=3}
 #Checking that the distribution of each of the two samples is nonnormal
-
 par(mfrow=c(1,2))
 hist(rider_data$bus)
 hist(rider_data$rail_boardings)
