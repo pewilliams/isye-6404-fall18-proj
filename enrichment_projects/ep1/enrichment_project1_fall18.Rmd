@@ -25,7 +25,6 @@ suppressPackageStartupMessages(library(reshape2))
 *Locate a data set in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the following procedures for two-sample studies.*  
 
 For our two-sample study, we have selected a dataset published by the City of Chicago Transit Authority (CTA) that details daily ridership numbers (system-wide boarding totals) for both bus and rail services. As a pre-processing step, we take a subset of the original dataset that consists of weekday ridership only (weekends, and holidays excluded) for 2017 and 2018. Below is a quick preview of the dataset and pre-processing steps: 
-
 ```{r preview, include=T, echo=F}
 rider_data <- read.csv(
   'data/CTA_Ridership_Normalized.csv',
@@ -39,6 +38,7 @@ rider_data <- rider_data[format(rider_data$service_date, '%Y') %in%
                            c('2017','2018'),]
 knitr::kable(head(rider_data,n=5),row.names = F, format.args = list(big.mark = ','))
 ```
+Note: For the purpose of comparison, we transformed the data to normalize the distributions for equal variances between them. This will allow us to perform both nonparametric and parametric tests to determine whether the two sample distributions are different. The variances of the samples were unequal, so we cannot nonparametric tests such as the Wilcoxon Rank Sum Test. With our new data, the variances are close enough that the distributions can then be compared. 
 
 ## Bootstrap Re-sampling
 
@@ -103,20 +103,19 @@ Instead, the better test to use in the case of our CTA data would be the Wilcoxo
 The Mann Whitney U Test accomplishes essentially the exact same purpose as the Wilcoxon Ranked Sum Test. The only differences are a differently labeled test statistic "U" compared to that of the Wilcoxon ranked sum test statistics "W" as well as the assumption that the shapes of the two population distributions have the same "shape". They are even performed using the exact same function, with the "U" test statistic being equivalent to the "W" test statistics of the Wilcoxson Ranked Sum Test.
 
 ```{r shape_distribution, echo = T, include= T}
-#Checking shapes of distribution (differences between ridership for a given day)
+#Checking shapes of distributions
 par(mfrow=c(1,2))
 plot(density(rider_data$bus))
 plot(density(rider_data$rail_boardings))
 ```
+If we plot the density functions, we can see the distributions seem to resemble normal distributions, though they do resemble each other in terms of their "shape". 
 
 ```{r wilcox_rank, echo = T, include = T}
-#Wilcoxon Ranked Sum Test 
-wilcox.test(rider_data$bus, rider_data$rail_boardings, paired=F)
-#W = 81592, p-value < 2.2e-16
-#alternative hypothesis: true location shift is not equal to 0
+#Performing the Wilcoxon Rank Sum Test/Mann Whitney U Test
+wilcox.test(normal_rider$bus, normal_rider$rail_boardings, paired=F)
 ```
 
-The results of the Wilcoxon Ranked Sum Test show the p-value of the test to be small enough to be significant, meaning we reject the null hypothesis that the distributions of the two samples are the same. The fact that the Wilcoxon Ranked Sum Test and the Mann Whitney U Test are essentially the same test allows us to also state that the medians of the two distributions are also different. 
+The results of the Wilcoxon Ranked Sum Test show the p-value of the test to be small enough to be significant, meaning we reject the null hypothesis that the distributions of the two samples are identical. The fact that the Wilcoxon Ranked Sum Test and the Mann Whitney U Test are essentially the same test allows us to also state that the medians of the two distributions are also different. 
 
 In order to apply the Wilcoxon Signed-Rank Test, we will need to use a different set of data to demonstrate the test in R. For this purpose, we will use the data from this site: https://www.sheffield.ac.uk/polopoly_fs/1.569449!/file/stcp-Rdataset-Video.csv. 
 A professor at the University of Sheffield collected data using "Likert" style questions to determine which of three new videos are most effective in informing the public of medical conditions. The four videos in questions are deemed the following: A, a new general video; B, a new medical profession video; C, the old video; and D, a demonstration using props. In this dataset, there are two particular variables of interest, and they are "TotalAGen" and "TotalDDEMO". These two variables are essentially the overall summed "Likert Scores" for each of the different types of videos. Our paired data will be between the scaled overall scores between video A's reception  and video D's reception. 
@@ -131,7 +130,7 @@ hist(video_data$TotalAGen)
 hist(video_data$TotalDDEMO)
 ```
 
-We can assume the independence of each observation (person) as well as the fact that they shoudl come from the same population (differences should be symmetric about 0). The data are also paired, so we can follow through with the test now that the assumptions are met. Through the Wilcoxon Signed Rank Test, we can see that the test statistic V = 167.5, which leads us to a p-value below our assumed alpha level of 0.05. Thus, we can reject the null hypothesis that the two sample distributions (Scores of Video A compared to scores of Video D) are the same. 
+We can assume the independence of each observation (person) as well as the fact that they should come from the same population (differences should be symmetric about 0). The data are also paired, so we can follow through with the test now that the assumptions are met. Through the Wilcoxon Signed Rank Test, we can see that the test statistic V = 167.5, which leads us to a p-value below our assumed alpha level of 0.05. Thus, we can reject the null hypothesis that the two sample distributions (Scores of Video A compared to scores of Video D) are the same. 
 
 P-value for Signed Rank:
 P-value for Sum Rank:
@@ -212,14 +211,14 @@ As a result, use F-test on the data has shortcomings compared to use Conover tes
 
 *5. Depending on the outcomes from the F-test in (iv), apply an appropriate parametric two- sample t-test to the data; comment on the difference of the assumptions and results compared to them in (ii).*  
 
-As seen in the histograms and Q-Q plots for the ridership data, both of our two samples (bus ridership and rail boardings) do not follow a normal distribution, but they both have fairly large sample sizes. In utilizing the two sample t-test, some assumptions must first be met. One such assumption is an underlying normal distribution, which we can see is not the case with our current data. Despite this, we will continue with our performance of the Welch's t-test. Welch's t-test is a robust test similar to the student's t-test, with the advantage that it accounts for unequal variances. Welch's t-test is also more appropriate for more skewed data as compared to the standard two sample t-test. Similar to the nonparametric tests performed (Mann-Whitney U), the data must be continuous.   
+The aim of the two-sample t-test is to find the difference between the two sample means in comparing their respective populations. In utilizing the two sample t-test, some assumptions must first be met. One must assume that the observations of our data are independent of each other, similar to the nonparametric tests. Another such assumption is for the response variable to be continuous, approximately normal distribution. Our normalized ridership data allows us to be able to perform the parametric two sample t-test. Similar to the nonparametric tests performed (Mann-Whitney U), the data must be continuous. 
 
-```{r welch test, include = T, echo = F}
-#Performing Welch's T-test with assumed unequal variance
-t.test(rider_data$bus,rider_data$rail_boardings, var.equal=FALSE)
+```{r t_test, include = T, echo = F}
+#Performing Parametric t-test between the two samples
+t.test(rider_data$bus,rider_data$rail_boardings, var.equal=TRUE)
 ```
   
-As we can see from the results of the test, the p-value is quite low, showing that there is a significant difference between the two means. In comparing the two tests, the parametric t-test tests for significance in difference between the means of the two samples, while the nonparametric tests (Mann-Whitney U) test for significance in differences between the distributions (and medians) of the two samples. In terms of results, both the Mann-Whitney U test and Welch's t-test with assumed unequal variance show a significant difference in mean and median for the two samples. Despite the fact that they both could determine whether there are differences between the two sample distributions, the Mann-Whitney U test is a more reliable test if only for the fact that the Mann-Whitney U test is better suited for nonnormal distributions (e.g. the ridership counts). As opposed to Welch's t-test, which still holds the assumption of normality (similar to the student's t-test)
+As we can see from the results of the test, the p-value is quite low, showing that there is a significant difference between the two means. In comparing the two tests, the parametric t-test tests for significance in difference between the means of the two samples, while the nonparametric tests (Mann-Whitney U) test for significance in differences between the distributions (and medians) of the two samples. In terms of results, both the Mann-Whitney U test and the two sample t-test show a significant difference in mean and median for the two samples. Despite the fact that they both could determine whether there are differences between the two sample distributions, the two sample t-test is a more reliable test if only for the fact that the Mann-Whitney U test is better suited for nonnormal distributions (while we transformed our data to become more normal so as to meet the assumption of normality for the t-test). The t-test is a more reliable test compared to its nonparametric analog when the distributions are approximately normal.
 
 ## Goodness of Fit Tests
 
@@ -268,7 +267,7 @@ Cramer-Von Mises statistic is defined as:
 $$U^2 = T-n(\overline{F}-\frac{1}{2})^2$$
 where
 $$\overline{F} = \frac{1}{n}\sum{F(x_i)}$$
- As a result, due to our data is not normally ditributed and we have more than 300 data points, so in our opinion, it is more reasonable to choose Anderson-Darling test.
+ As a result, due to our data is not normally distributed and we have more than 300 data points, so in our opinion, it is more reasonable to choose Anderson-Darling test.
 
 # 2) Multiple-Sample (ANOVA) Studies (60%):  
 
