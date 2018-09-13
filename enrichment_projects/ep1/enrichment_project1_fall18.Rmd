@@ -215,7 +215,7 @@ The aim of the two-sample t-test is to find the difference between the two sampl
 
 ```{r t_test, include = T, echo = F}
 #Performing Parametric t-test between the two samples
-t.test(rider_data$bus,rider_data$rail_boardings, var.equal=TRUE)
+t.test(rider_data$bus,rider_data$rail_boardings)
 ```
   
 As we can see from the results of the test, the p-value is quite low, showing that there is a significant difference between the two means. In comparing the two tests, the parametric t-test tests for significance in difference between the means of the two samples, while the nonparametric tests (Mann-Whitney U) test for significance in differences between the distributions (and medians) of the two samples. In terms of results, both the Mann-Whitney U test and the two sample t-test show a significant difference in mean and median for the two samples. Despite the fact that they both could determine whether there are differences between the two sample distributions, the two sample t-test is a more reliable test if only for the fact that the Mann-Whitney U test is better suited for nonnormal distributions (while we transformed our data to become more normal so as to meet the assumption of normality for the t-test). The t-test is a more reliable test compared to its nonparametric analog when the distributions are approximately normal.
