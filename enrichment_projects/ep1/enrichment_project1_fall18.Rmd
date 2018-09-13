@@ -120,7 +120,19 @@ wilcox.test(rider_data$bus, rider_data$rail_boardings, paired=F)
 
 The results of the Wilcoxon Ranked Sum Test show the p-value of the test to be small enough to be significant, meaning we reject the null hypothesis that the distributions of the two samples are the same. The fact that the Wilcoxon Ranked Sum Test and the Mann Whitney U Test are essentially the same test allows us to also state that the medians of the two distributions are also different. 
 
-For the purpose of applying the Wilcoxon Signed-Rank Test, we will need to use a different set of data to 
+In order to apply the Wilcoxon Signed-Rank Test, we will need to use a different set of data to demonstrate the test in R. For this purpose, we will use the data from this site: https://www.sheffield.ac.uk/polopoly_fs/1.569449!/file/stcp-Rdataset-Video.csv. 
+A professor at the University of Sheffield collected data using "Likert" style questions to determine which of three new videos are most effective in informing the public of medical conditions. The four videos in questions are deemed the following: A, a new general video; B, a new medical profession video; C, the old video; and D, a demonstration using props. In this dataset, there are two particular variables of interest, and they are "TotalAGen" and "TotalDDEMO". These two variables are essentially the overall summed "Likert Scores" for each of the different types of videos. Our paired data will be between the scaled overall scores between video A's reception  and video D's reception. 
+
+#For performing the Wilcoxon Signed Rank Test, download the dataset
+video_data=read.csv('https://www.sheffield.ac.uk/polopoly_fs/1.569449!/file/stcp-Rdataset-Video.csv')
+#Wilcoxon Signed Rank Test, with paired data
+wilcox.test(video_data$TotalAGen,video_data$TotalDDEMO, paired=T)
+#Showing nonnormal distributions of the sample data
+hist(video_data$TotalAGen)
+hist(video_data$TotalDDEMO)
+
+We can assume the independence of each observation (person) as well as the fact that they shoudl come from the same population (differences should be symmetric about 0). The data are also paired, so we can follow through with the test now that the assumptions are met. Through the Wilcoxon Signed Rank Test, we can see that the test statistic V = 167.5, which leads us to a p-value below our assumed alpha level of 0.05. Thus, we can reject the null hypothesis that the two sample distributions (Scores of Video A compared to scores of Video D) are the same. 
+
 
 P-value for Signed Rank:
 P-value for Sum Rank:
