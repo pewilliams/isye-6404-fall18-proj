@@ -26,7 +26,7 @@ suppressPackageStartupMessages(library(reshape2))
 
 For our two-sample study, we have selected a dataset published by the City of Chicago Transit Authority (CTA) that details daily ridership numbers (system-wide boarding totals) for both bus and rail services. As a pre-processing step, we take a subset of the original dataset that consists of weekday ridership only (weekends, and holidays excluded) for 2017 and 2018. Below is a quick preview of the dataset and pre-processing steps: 
 
-```{r preview, include=T}
+```{r preview, include=T, echo=F}
 rider_data <- read.csv(
   'data/CTA_-_Ridership_-_Daily_Boarding_Totals.csv',
                        header = T,stringsAsFactors = F)
@@ -37,7 +37,7 @@ rider_data <- transform(rider_data, service_date = as.Date(service_date,
 #subset data to 2017 and 2018 rides only
 rider_data <- rider_data[format(rider_data$service_date, '%Y') %in% 
                            c('2017','2018'),]
-knitr::kable(head(rider_data,n=5),row.names = F)
+knitr::kable(head(rider_data,n=5),row.names = F, format.args = list(big.mark = ','))
 ```
 
 ## Bootstrap Re-sampling
@@ -85,7 +85,6 @@ ggplot(melt_cor_result, aes(x = value, fill = variable)) + geom_density(alpha = 
 ## Signed Rank Tests
 *2. Apply Wilcoxon Signed Rank Test, Wilcoxon Sum Rank Test, Mann-Whitney U Test to compare two samples. For each test please state clearly what distribution is used to calculate the p-value.*  
 
-  ##Work in progress.
 ###NOTE: Still need to write distributions used to calculate P-values.
 
 Continuing on with the data given by the CTA on bus and rail ridership in 2017 and 2018, we can attempt to utilize the Wilcoxon Signed-Rank Test to determine whether there is a difference between paired data, but certain assumptions must first be met. In using the Wilcoxon Signed Rank Test, the data must be paired, the pairs must be independent, and the paired differences must be distributed symmetrically about 0 (the assumption that the pairs are drawn from the same population). The samples must also be from a nonnormal distribution. 
@@ -135,7 +134,6 @@ hist(video_data$TotalDDEMO)
 
 We can assume the independence of each observation (person) as well as the fact that they shoudl come from the same population (differences should be symmetric about 0). The data are also paired, so we can follow through with the test now that the assumptions are met. Through the Wilcoxon Signed Rank Test, we can see that the test statistic V = 167.5, which leads us to a p-value below our assumed alpha level of 0.05. Thus, we can reject the null hypothesis that the two sample distributions (Scores of Video A compared to scores of Video D) are the same. 
 
-
 P-value for Signed Rank:
 P-value for Sum Rank:
 P-value for Mann-Whitney U
@@ -155,13 +153,13 @@ ggplot(NULL,aes(x = boardings, fill = factor_level)) +
 
 To explore this further we utilize the two-sided Conover test to test the hypothesis $H_0: \sigma^2_X = \sigma^2_Y$, where samples $X_1,...,X_{n1}$, and $Y_1,...,Y_{n_2}$ refer to samples from daily ridership of bus and rail. The output of the test utilizing the 'conover.test' function from R is shown below:  
 
-```{r conover, echo =T, include = T}
+```{r conover, echo =F, include = T}
 #alt = 0 -> test hypothesis sigma^2_x \neq sigma^2_y
 con_test <- conover.test(x = boardings, g = factor_level,alpha = 0.05, altp = 0, method = 'bonferroni')
 con_test
 ```
   
-Since our test statistic $T* = $ `r round(con_test$T,digits=3)`, is outside the region (`r qnorm(0.025)`,`r qnorm(0.975)`), we can reject $H_0$ in favor of the alternative, that is $\sigma^2_{X} \neq \sigma^2_{Y}$. 
+Since our test statistic $T* =$ `r round(con_test$T,digits=3)`, is outside the region (`r qnorm(0.025)`,`r qnorm(0.975)`), we can reject $H_0$ in favor of the alternative, that is $\sigma^2_{X} \neq \sigma^2_{Y}$. 
 
 The calculation of p-value:
 First, the test does not assume that all populations are normally distributed and is recommended when the normality assumption is not viable.
@@ -183,24 +181,29 @@ $$D^2 = \frac{1}{N-1}[\sum^{g}_{k=1}\sum^{n_k}_{i=1}R^4_{ki}-N\overline{S}^2]$$
 *4. Use the parametric F-test for equal variances to the data; comment on the difference of the assumptions and results compared to them in (iii).*  
 F-test for testing equality of variance is used to test the hypothesis of the equality of two population variances.
 The test statistic can be obtained by computing the ratio of the two variances $S^2_A$ and $S^2_B$.
-$$F=\frac{S^2_A}{S^2_B}$$  
+$$F=\frac{S^2_A}{S^2_B}$$    
   
-The degrees of freedom are $n_A - 1$ (for the numerator) and $n_B - 1$ (for the denominator). And, the more this ratio deviates from $1$, the stronger the evidence for unequal population variances.
+The degrees of freedom are $n_A - 1$ (for the numerator) and $n_B - 1$ (for the denominator). And, the more this ratio deviates from $1$, the stronger the evidence for unequal population variances.  
 
-```{r test_var, echo = T, include = T}
+```{r test_var, echo = F, include = T}
 var.test(rider_data$bus, rider_data$rail_boardings, alternative = "two.sided")
 ```
+  
 The result shows that the p-value $= 0.01772$ which is smaller than our $\alpha = 0.05$. In conclusion, there is significant difference between the two variances.
 
 Assumptions for Conover and F-test:
 According to the above, the Conover test does not assume that all populations are normally distributed.
-However, F-test is very sensitive to departure from the normal assumption.We use Q-Q plot (quantile-quantile plot) to graphically evaluate the normality of a variable.
-```{r qqplots, echo = T, include = T, fig.align='center',fig.height=3}
-qqnorm(rider_data$bus, pch = 1, frame = FALSE)
-qqline(rider_data$bus, col = "steelblue", lwd = 2)
-qqPlot(rider_data$bus)
+However, F-test is very sensitive to departure from the normal assumption. We use Q-Q plot (quantile-quantile plot) to graphically evaluate the normality of a variable.    
+
+```{r qqplots, echo = F, include = T, fig.align='center',fig.height=4}
+#qqnorm(rider_data$bus, pch = 1, frame = FALSE)
+#qqline(rider_data$bus, col = "steelblue", lwd = 2)
+options(scipen = 999)
+par(mfrow = c(1,2))
+qqPlot(rider_data$bus, xlab = 'Bus Boardings', main = 'Q-Q Plot - Bus Boardings')
+ qqPlot(rider_data$rail, xlab = 'Rail Boardings', main = 'Q-Q Plot - Rail Boardings')
 ```
-As we can see, there are many points don't fall approximately along this reference line, so, we cannot assume normality.
+As we can see, there are many points don't fall approximately along this reference line, for both rail and bus boardings, so, we cannot assume normality for either sample.
 
 Results for Conover and F-test:
 Although the results are consistent based on this sample, Conover test is recommended when the normality assumption is not viable.
@@ -210,12 +213,13 @@ As a result, use F-test on the data has shortcomings compared to use Conover tes
 
 *5. Depending on the outcomes from the F-test in (iv), apply an appropriate parametric two- sample t-test to the data; comment on the difference of the assumptions and results compared to them in (ii).*  
 
-As seen in the histograms and Q-Q plots for the ridership data, both of our two samples (bus ridership and rail boardings) do not follow a normal distribution, but they both have fairly large sample sizes. In utilizing the two sample t-test, some assumptions must first be met. One such assumption is an underlying normal distribution, which we can see is not the case with our current data. Despite this, we will continue with our performance of the Welch's t-test. Welch's t-test is a robust test similar to the student's t-test, with the advantage that it accounts for unequal variances. Welch's t-test is also more appropriate for more skewed data as compared to the standard two sample t-test. Similar to the nonparametric tests performed (Mann-Whitney U), the data must be continuous. 
+As seen in the histograms and Q-Q plots for the ridership data, both of our two samples (bus ridership and rail boardings) do not follow a normal distribution, but they both have fairly large sample sizes. In utilizing the two sample t-test, some assumptions must first be met. One such assumption is an underlying normal distribution, which we can see is not the case with our current data. Despite this, we will continue with our performance of the Welch's t-test. Welch's t-test is a robust test similar to the student's t-test, with the advantage that it accounts for unequal variances. Welch's t-test is also more appropriate for more skewed data as compared to the standard two sample t-test. Similar to the nonparametric tests performed (Mann-Whitney U), the data must be continuous.   
 
-```
+```{r welch test, include = T, echo = F}
 #Performing Welch's T-test with assumed unequal variance
 t.test(rider_data$bus,rider_data$rail_boardings, var.equal=FALSE)
 ```
+  
 As we can see from the results of the test, the p-value is quite low, showing that there is a significant difference between the two means. In comparing the two tests, the parametric t-test tests for significance in difference between the means of the two samples, while the nonparametric tests (Mann-Whitney U) test for significance in differences between the distributions (and medians) of the two samples. In terms of results, both the Mann-Whitney U test and Welch's t-test with assumed unequal variance show a significant difference in mean and median for the two samples. Despite the fact that they both could determine whether there are differences between the two sample distributions, the Mann-Whitney U test is a more reliable test if only for the fact that the Mann-Whitney U test is better suited for nonnormal distributions (e.g. the ridership counts). As opposed to Welch's t-test, which still holds the assumption of normality (similar to the student's t-test)
 
 ## Goodness of Fit Tests
@@ -281,8 +285,9 @@ $$\overline{F} = \frac{1}{n}\sum{F(x_i)}$$
 
 ## Variance Testing    
 
-*3. Conduct a variance test based on the procedure (Conover test) given in Section 8.3 textbook. Comment on your findings.*    
-## Parametric Two Sample Testing  
+*3. Conduct a variance test based on the procedure (Conover test) given in Section 8.3 textbook. Comment on your findings.* 
+
+## Parametric Two Sample Testing 
 
 *4. Repeat the same studies in (i), (ii) and (iii) using parametric approaches (also include the possible pairwise comparisons). State the assumptions needed for the parametric approaches. Compare the results here against those in (i), (ii) and (iii), respectively. Note that if there are certain assumptions (e.g., normality and equal-variance) required in the parametric studies, please apply appropriate procedures to “test” the assumption.*  
 
