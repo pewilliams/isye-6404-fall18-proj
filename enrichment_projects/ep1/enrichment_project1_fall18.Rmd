@@ -53,7 +53,7 @@ paste0("Spearman's Correlation: " ,round(with(rider_data, cor(x=bus,y=rail_board
 paste0("Kendall's Tau: " ,round(with(rider_data, cor(x=bus,y=rail_boardings,
                                                      method = "kendall")),digits=3))
 ```
-We then compute these statistics using $B=1000$ bootstrap samples based on our original dataset, which consists of `r nrow(rider_data)` observations. Code and details are below. As shown in the table of results, bootstrap sample standard deviations for spearman's rank were more dispersed than for other statistics.  
+We then compute these statistics using $B=1000$ bootstrap samples based on our original dataset, which consists of `r nrow(rider_data)` observations. Code and details are below. As shown in the table of results, bootstrap sample standard deviations for all correlation statistics were similar, and were slightly higher for spearman's rank:  
 ```{r bstrap, include=T,echo=T, height = 4}
 #set the number of bootstrap samples (with replacement - n = 318)
 B <- 1000
@@ -74,7 +74,7 @@ knitr::kable(round(data.frame(lapply(cor_result, sd)),digits=4),row.names=F,
              caption = 'Sample Standard Deviation: Bootstrap Sample Correlation')
 ```
 
-Density plots of these statistics are shown here, further visual confirmation that the spearman rank correlation results are more dispersed than others: 
+Density plots of these statistics are shown here, and provide visual evidence that the spearman rank correlation results and kendall's tau have more similar results than the parametric pearson's correlation: 
 
 ```{r den_cor, include=T,echo=T,fig.align = 'center',fig.height = 3}
 melt_cor_result <- melt(cor_result, measure.vars = c('pearson','spearman','kendall'))
