@@ -133,8 +133,29 @@ hist(video_data$TotalDDEMO)
 We can assume the independence of each observation (person) as well as the fact that they should come from the same population (differences should be symmetric about 0). The data are also paired, so we can follow through with the test now that the assumptions are met. Through the Wilcoxon Signed Rank Test, we can see that the test statistic V = 167.5, which leads us to a p-value below our assumed alpha level of 0.05. Thus, we can reject the null hypothesis that the two sample distributions (Scores of Video A compared to scores of Video D) are the same. 
 
 P-value for Signed Rank:
-P-value for Sum Rank:
-P-value for Mann-Whitney U
+
+For the calculation of the p-value, one must first be able to determine the test statistic being used in each test. For the Wilcoxon Rank Sum test, we find the 
+
+W_{n} = \sum^{n}_{i=1}iS_{i}(X,Y)
+
+where n_1 is the sample size of the first sample (observations in bus ridership) , n_2 is the sample size of the second sample (observations in rail boarding), and n_1 + n_2 = n
+
+The expected value of the W_n statistic is where the distrition will be centered around, and the variance of the statistic will be the symmetrical spread around that center. 
+
+E(W_{n}) = [n_{1}(n+1)]/2
+
+Var(W_{n}) = [n_{1}n_{2}(n+1)]/12
+
+As the test statistic is ordinal in the sense that it is a linear rank statistic, we can then deduce that the W_n statistic is distributed approximately normally as long as the sample sizes are large enough (at least 10 observations per sample). We can then calculate the right-tail probability using Z-score with normal approximation with the following distribution:
+
+W_{n} ~ N([n_1 (n+1)]/2 , [n_1 (n_2) (n+1)]/12)
+
+The Mann-Whitney U statistic is used to calculate p-value much in the same manner of the Wilcoxon Rank Sum Test. The test statistic can be calculated as such: 
+
+U = \sum^{n1}_{i=1}\sum^{n2}_{j=1} D_{ij}
+
+The test statisic U and W end up becoming the same value, used in the same approximately normal distribution as the W_{n}, which means we can use the same tail probability to find the p-value.
+***
 
 ## Conover Test for Equal Variances
 *3. Use Conover test for equal variances in these two samples. Explain how to calculate its p-value.*  
@@ -211,11 +232,11 @@ As a result, use F-test on the data has shortcomings compared to use Conover tes
 
 *5. Depending on the outcomes from the F-test in (iv), apply an appropriate parametric two- sample t-test to the data; comment on the difference of the assumptions and results compared to them in (ii).*  
 
-The aim of the two-sample t-test is to find the difference between the two sample means in comparing their respective populations. In utilizing the two sample t-test, some assumptions must first be met. One must assume that the observations of our data are independent of each other, similar to the nonparametric tests. Another such assumption is for the response variable to be continuous, approximately normal distribution. Our normalized ridership data allows us to be able to perform the parametric two sample t-test. Similar to the nonparametric tests performed (Mann-Whitney U), the data must be continuous. 
+The aim of the two-sample t-test is to find the difference between the two sample means in comparing their respective populations. In utilizing the two sample t-test, some assumptions must first be met. One must assume that the observations of our data are independent of each other, similar to the nonparametric tests. Another such assumption is for the response variable to be continuous, approximately normal distribution. Our normalized ridership data allows us to be able to perform the parametric (pooled) two sample t-test. Similar to the nonparametric tests performed (Mann-Whitney U), the data must be continuous. 
 
 ```{r t_test, include = T, echo = F}
-#Performing Parametric t-test between the two samples
-t.test(rider_data$bus,rider_data$rail_boardings)
+#Performing Parametric t-test between the two samples, pooled t-test is used because the normalized data have equal variance.
+t.test(rider_data$bus,rider_data$rail_boardings,var.equal=TRUE)
 ```
   
 As we can see from the results of the test, the p-value is quite low, showing that there is a significant difference between the two means. In comparing the two tests, the parametric t-test tests for significance in difference between the means of the two samples, while the nonparametric tests (Mann-Whitney U) test for significance in differences between the distributions (and medians) of the two samples. In terms of results, both the Mann-Whitney U test and the two sample t-test show a significant difference in mean and median for the two samples. Despite the fact that they both could determine whether there are differences between the two sample distributions, the two sample t-test is a more reliable test if only for the fact that the Mann-Whitney U test is better suited for nonnormal distributions (while we transformed our data to become more normal so as to meet the assumption of normality for the t-test). The t-test is a more reliable test compared to its nonparametric analog when the distributions are approximately normal.
