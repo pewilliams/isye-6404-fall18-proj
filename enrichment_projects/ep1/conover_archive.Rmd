@@ -1,0 +1,48 @@
+---
+title: "Conover Multi-Comparisons"
+author: "NA"
+date: "9/18/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Conover Test for Equal Variances
+*3. Use Conover test for equal variances in these two samples. Explain how to calculate its p-value.*  
+
+A histogram visualizing the counts of daily bus and rail ridership illustrates that there are likely differences in the variance of daily ridership. Rail ridership tends to be more tightly group around its central point, than bus ridership which is more spread out as shown here: 
+
+```{r histo, include = T, echo=T, fig.align='center',fig.height=3}
+boardings <- c(rider_data$bus, rider_data$rail_boardings)
+factor_level <- factor(c(rep('bus',nrow(rider_data)), rep('rail',nrow(rider_data))))
+ggplot(NULL,aes(x = boardings, fill = factor_level)) + 
+  geom_histogram(bins = sqrt(nrow(rider_data)) ) + theme_bw() + 
+  ggtitle("Histogram - CTA Daily Boardings by Rail | Bus")
+```
+
+To explore this further we utilize the two-sided Conover test to test the hypothesis $H_0: \sigma^2_X = \sigma^2_Y$, where samples $X_1,...,X_{n1}$, and $Y_1,...,Y_{n_2}$ refer to samples from daily ridership of bus and rail. The output of the test utilizing the 'conover.test' function from R is shown below:  
+
+```{r conover, echo =F, include = T}
+#alt = 0 -> test hypothesis sigma^2_x \neq sigma^2_y
+con_test <- conover.test(x = boardings, g = factor_level,alpha = 0.05, altp = 0, method = 'bonferroni')
+con_test
+```
+  
+Since our test statistic $T* =$ `r round(con_test$T,digits=3)`, is outside the region (`r qnorm(0.025)`,`r qnorm(0.975)`), we can reject $H_0$ in favor of the alternative, that is $\sigma^2_{X} \neq \sigma^2_{Y}$. 
+
+The calculation of p-value:
+First, the test does not assume that all populations are normally distributed and is recommended when the normality assumption is not viable.
+Second, Suppose there are g groups obey normal distribution with possibly different means and standard deviations $\sigma_1, \sigma_2,…, \sigma_g$. Let $n_1, n_2, …, n_g$ denote the number of subjects in each group, $Y_{ki}$ denote response values, and N denote
+the total sample size of all groups. The test assumes that the data are obtained by taking a simple random sample from each of the g populations.
+The formula for the calculation of Conover test is:
+
+$$T = \frac{1}{D^2}[\sum^{g}_{k=1}\frac{S^2_k}{n_k}-N \overline{S}]$$
+Where
+$$Z_{ki} = |Y_{ki}-\overline{Y}_k|$$
+$$R_{ki} = Rank(Z_{ki})$$
+$$S_k = \sum^{n_k}_{i=1}R^2_{ki}$$
+$$\overline{S} = \frac{1}{N}\sum^{g}_{k=1}S_k$$
+$$D^2 = \frac{1}{N-1}[\sum^{g}_{k=1}\sum^{n_k}_{i=1}R^4_{ki}-N\overline{S}^2]$$
+ If the assumptions are met, the distribution of this test statistic follows approximately the Chi-squared distribution with degrees of freedom $g-1$. And then, we can use the p-value of Chi-square distribution to get the p-value of conover test.

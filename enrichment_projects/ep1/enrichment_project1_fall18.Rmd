@@ -39,6 +39,8 @@ rider_data <- rider_data[format(rider_data$service_date, '%Y') %in%
                            c('2017','2018'),]
 knitr::kable(head(rider_data,n=5),row.names = F, format.args = list(big.mark = ','))
 ```
+  
+  
 Note: For the purpose of comparison, we transformed the data to normalize the distributions for equal variances between them. This will allow us to perform both nonparametric and parametric tests to determine whether the two sample distributions are different. The variances of the samples were unequal, so we cannot nonparametric tests such as the Wilcoxon Rank Sum Test. With our new data, the variances are close enough that the distributions can then be compared. 
 
 ## Bootstrap Re-sampling
@@ -94,18 +96,20 @@ The Mann Whitney U Test accomplishes essentially the exact same purpose as the W
 
 ```{r histograms_non_normal, echo = T, include = F, fig.align='center',fig.height=3}
 #Checking that the distribution of each of the two samples is nonnormal
-
-melted_rider_data <- melt(rider_data, measure.vars = c('bus','rail_boardings'), id.vars = 'service_date')
-melted_rider_data <- transform(melted_rider_data, variable = ifelse(as.character(variable) == 'rail_boardings','Rail','Bus'))
-ggplot(melted_rider_data, aes(x = value/1e06, fill = variable)) + geom_density(alpha = 0.3) + theme_bw() + 
-  xlab('Daily Ridership') + ggtitle('Density Plots: Daily Boardings by Type (mms)')
+melted_rider_data <- melt(rider_data, measure.vars = c('bus','rail_boardings'), 
+                          id.vars = 'service_date')
+melted_rider_data <- transform(melted_rider_data, 
+                               variable = ifelse(as.character(variable) == 'rail_boardings','Rail','Bus'))
+ggplot(melted_rider_data, aes(x = value/1e06, fill = variable)) + 
+    geom_density(alpha = 0.3) + theme_bw() + 
+      xlab('Daily Ridership') + ggtitle('Density Plots: Daily Boardings by Type (mms)')
 ```
 
 If we plot the density functions and histograms, we can see the distributions seem to resemble normal distributions, and they do resemble each other in terms of their "shape". 
 
 ```{r wilcox_rank, echo = T, include = T}
 #Performing the Wilcoxon Rank Sum Test/Mann Whitney U Test
-wilcox.test(normal_rider$bus, normal_rider$rail_boardings, paired=F)
+with(rider_data, wilcox.test(bus,rail_boardings, paired=F))
 ```
 
 The results of the Wilcoxon Ranked Sum Test show the p-value of the test to be small enough to be significant, meaning we reject the null hypothesis that the distributions of the two samples are identical. The fact that the Wilcoxon Ranked Sum Test and the Mann Whitney U Test are essentially the same test allows us to also state that the medians of the two distributions are also different. 
@@ -119,11 +123,11 @@ where $n_1$ is the sample size of the first sample (observations in bus ridershi
 $S_{i}$ is an indicator function with value is 1 if ith ranked observation is from the first sample or 0 if from the second sample.
 [cite textbook]
 
-The expected value of the W_n statistic is where the distrition will be centered around, and the variance of the statistic will be the symmetrical spread around that center. 
+The expected value of the W_n statistic is where the distrition will be centered around, and the variance of the statistic will be the symmetrical spread around that center: 
 
-E(W_{n}) = [n_{1}(n+1)]/2
+$E(W_{n}) = [n_{1}(n+1)]/2$$
 
-Var(W_{n}) = [n_{1}n_{2}(n+1)]/12
+$$Var(W_{n}) = [n_{1}n_{2}(n+1)]/12$$
 
 As the test statistic is a linear rank statistic, we can then deduce that the W statistic is distributed approximately normally as long as the sample sizes are large enough (at least 10 observations per sample). We can then calculate the right-tail probability using Z-score with normal approximation with the following distribution:
 
@@ -138,14 +142,15 @@ The test statisic U and W end up becoming the same value, used in the same appro
 In order to apply the Wilcoxon Signed-Rank Test, we will need to use a different set of data to demonstrate the test in R. For this purpose, we will use the data from this site: https://www.sheffield.ac.uk/polopoly_fs/1.569449!/file/stcp-Rdataset-Video.csv. 
 A professor at the University of Sheffield collected data using "Likert" style questions to determine which of three new videos are most effective in informing the public of medical conditions. The four videos in questions are deemed the following: A, a new general video; B, a new medical profession video; C, the old video; and D, a demonstration using props. In this dataset, there are two particular variables of interest, and they are "TotalAGen" and "TotalDDEMO". These two variables are essentially the overall summed "Likert Scores" for each of the different types of videos. Our paired data will be between the scaled overall scores between video A's reception  and video D's reception. 
 
-``` {r sign_rank, echo = T, include= T}
+``` {r sign_rank, echo = T, include= T, fig.align='center',fig.height=3}
 #For performing the Wilcoxon Signed Rank Test, download the dataset
 video_data=read.csv('https://www.sheffield.ac.uk/polopoly_fs/1.569449!/file/stcp-Rdataset-Video.csv')
 #Wilcoxon Signed Rank Test, with paired data
 wilcox.test(video_data$TotalAGen,video_data$TotalDDEMO, paired=T)
 #Showing nonnormal distributions of the sample data
-hist(video_data$TotalAGen)
-hist(video_data$TotalDDEMO)
+par(mfrow = c(1,2))
+hist(video_data$TotalAGen, xlab ="TotalAGen" , ylab = "Count" , main ="Histogram: Video TotalAGen" , bty = 'n')
+hist(video_data$TotalDDEMO, xlab = "TotalDDEMO", ylab = "Count",main = "Histogram: Video TotalDDemo", bty='n')
 ```
 
 We can assume the independence of each observation (person) as well as the fact that they should come from the same population (differences should be symmetric about 0). The data are also paired, so we can follow through with the test now that the assumptions are met. Through the Wilcoxon Signed Rank Test, we can see that the test statistic V = 167.5, which leads us to a p-value below our assumed alpha level of 0.05. Thus, we can reject the null hypothesis that the two sample distributions (Scores of Video A compared to scores of Video D) are the same. 
@@ -173,8 +178,9 @@ We again show a density plot that visualizes the counts of daily bus and rail ri
 ```{r histo, include = T, echo=T, fig.align='center',fig.height=3}
 boardings <- c(rider_data$bus, rider_data$rail_boardings)
 factor_level <- factor(c(rep('bus',nrow(rider_data)), rep('rail',nrow(rider_data))))
-ggplot(melted_rider_data, aes(x = value/1e06, fill = variable)) + geom_density(alpha = 0.3) + theme_bw() + 
-  xlab('Daily Ridership') + ggtitle('Density Plots: Daily Boardings by Type (mms)')
+ggplot(melted_rider_data, aes(x = value/1e06, fill = variable)) + 
+  geom_density(alpha = 0.3) + theme_bw() + 
+    xlab('Daily Ridership') + ggtitle('Density Plots: Daily Boardings by Type (mms)')
 ```
 
 To explore this further we utilize the Fligner test to test the hypothesis $H_0: \sigma^2_X = \sigma^2_Y$, where samples $X_1,...,X_{n1}$, and $Y_1,...,Y_{n_2}$ refer to samples from daily ridership of bus and rail. The output of the test utilizing the 'fligner.test' function from R (package::car) is shown below, where our chosen $\alpha = 0.05$:  
@@ -188,8 +194,8 @@ fligner_test
 Since our test statistic $\chi_{K}^2* =$ `r round(fligner_test$statistic,digits=3)`, is less than (`r qchisq(0.95, df = fligner_test$parameter)`), we fail to reject our null hypothesis, that is $H_0: \sigma^2_X = \sigma^2_Y$. 
 
 The calculation of p-value is based on our realized $\chi^2$ statistic which is computed:
-$$\chi_{K}^2* = \frac{\sum_{j=1}^{k}n_j(\bar{a_j} - \bar{a})^2}{s^2} $$
-Where $k = \text{number of groups}$, $n_j$ is the number of observations for the $j^{th}$ group, $\bar{a_j}$ is the mean of the median centered, and subsequently ranked observations for the $j^{th}$ group. $\bar{a}$ is the mean of all median centered, ranked observations, and $s^2$ is the variance of the same median centered ranked observations. If the assumptions are met, the distribution of this test statistic follows approximately the Chi-squared distribution with degrees of freedom $k-1$. We can use the Chi-square distribution to get the p-value of fligner test.
+$$\chi_{K}^2* = \frac{\sum_{j=1}^{k}n_j(\bar{a_j} - \bar{a})^2}{V^2} $$
+Where $k = \text{number of groups}$, $n_j$ is the number of observations for the $j^{th}$ group, $\bar{a_j}$ is the mean of the median centered, ranked, and subsequently normalized observations for the $j^{th}$ group. $\bar{a}$ is the mean of all median centered, ranked and normalized observations, and $V^2$ is the sample variance of the same normalized observations. If the assumptions are met, the distribution of this test statistic follows approximately the Chi-squared distribution with degrees of freedom $k-1$. We can use the Chi-square distribution to get the p-value of Fligner test given our realized sample statistic.
 
 ## Parametric F-test For Equal Variances
 
