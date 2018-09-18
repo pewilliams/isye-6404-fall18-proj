@@ -19,6 +19,7 @@ suppressPackageStartupMessages(library(car))
 suppressPackageStartupMessages(library(nortest))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(reshape2))
+suppressPackageStartupMessages(library(car))
 ```
 
 # 1) Two-sample Studies (40%):
@@ -93,17 +94,13 @@ The Mann Whitney U Test accomplishes essentially the exact same purpose as the W
 
 ```{r histograms_non_normal, echo = T, include = F, fig.align='center',fig.height=3}
 #Checking that the distribution of each of the two samples is nonnormal
-par(mfrow=c(1,2))
-hist(rider_data$bus)
-hist(rider_data$rail_boardings)
+
+melted_rider_data <- melt(rider_data, measure.vars = c('bus','rail_boardings'), id.vars = 'service_date')
+melted_rider_data <- transform(melted_rider_data, variable = ifelse(as.character(variable) == 'rail_boardings','Rail','Bus'))
+ggplot(melted_rider_data, aes(x = value/1e06, fill = variable)) + geom_density(alpha = 0.3) + theme_bw() + 
+  xlab('Daily Ridership') + ggtitle('Density Plots: Daily Boardings by Type (mms)')
 ```
-```{r shape_distribution, echo = T, include= T}
-#Checking shapes of distributions
-par(mfrow=c(1,2))
-plot(density(rider_data$bus))
-plot(density(
-rider_data$rail_boardings))
-```
+
 If we plot the density functions and histograms, we can see the distributions seem to resemble normal distributions, and they do resemble each other in terms of their "shape". 
 
 ```{r wilcox_rank, echo = T, include = T}
@@ -112,7 +109,6 @@ wilcox.test(normal_rider$bus, normal_rider$rail_boardings, paired=F)
 ```
 
 The results of the Wilcoxon Ranked Sum Test show the p-value of the test to be small enough to be significant, meaning we reject the null hypothesis that the distributions of the two samples are identical. The fact that the Wilcoxon Ranked Sum Test and the Mann Whitney U Test are essentially the same test allows us to also state that the medians of the two distributions are also different. 
-
 
 For the calculation of the p-value, one must first be able to determine the test statistic being used in each test. For the Wilcoxon Rank Sum test, we find the 
 
@@ -169,43 +165,31 @@ With larger sample sizes though, the distribution of the W statistic for the sig
 
 
 
-## Conover Test for Equal Variances
-*3. Use Conover test for equal variances in these two samples. Explain how to calculate its p-value.*  
+## Fligner Test for Equal Variances
+*3. Use Fligner test for equal variances in these two samples. Explain how to calculate its p-value.*  
 
-A histogram visualizing the counts of daily bus and rail ridership illustrates that there are likely differences in the variance of daily ridership. Rail ridership tends to be more tightly group around its central point, than bus ridership which is more spread out as shown here: 
+We again show a density plot that visualizes the counts of daily bus and rail ridership illustrating that variance of daily ridership seems homogenous across ride modality. Both ridership types also seems to be spread symmetrically around their central point as shown here: 
 
 ```{r histo, include = T, echo=T, fig.align='center',fig.height=3}
 boardings <- c(rider_data$bus, rider_data$rail_boardings)
 factor_level <- factor(c(rep('bus',nrow(rider_data)), rep('rail',nrow(rider_data))))
-ggplot(NULL,aes(x = boardings, fill = factor_level)) + 
-  geom_histogram(bins = sqrt(nrow(rider_data)) ) + theme_bw() + 
-  ggtitle("Histogram - CTA Daily Boardings by Rail | Bus")
+ggplot(melted_rider_data, aes(x = value/1e06, fill = variable)) + geom_density(alpha = 0.3) + theme_bw() + 
+  xlab('Daily Ridership') + ggtitle('Density Plots: Daily Boardings by Type (mms)')
 ```
 
-To explore this further we utilize the two-sided Conover test to test the hypothesis $H_0: \sigma^2_X = \sigma^2_Y$, where samples $X_1,...,X_{n1}$, and $Y_1,...,Y_{n_2}$ refer to samples from daily ridership of bus and rail. The output of the test utilizing the 'conover.test' function from R is shown below:  
+To explore this further we utilize the Fligner test to test the hypothesis $H_0: \sigma^2_X = \sigma^2_Y$, where samples $X_1,...,X_{n1}$, and $Y_1,...,Y_{n_2}$ refer to samples from daily ridership of bus and rail. The output of the test utilizing the 'fligner.test' function from R (package::car) is shown below, where our chosen $\alpha = 0.05$:  
 
 ```{r conover, echo =F, include = T}
 #alt = 0 -> test hypothesis sigma^2_x \neq sigma^2_y
-con_test <- conover.test(x = boardings, g = factor_level,alpha = 0.05, altp = 0, method = 'bonferroni')
-con_test
+fligner_test <- fligner.test(x = boardings, g = factor_level)
+fligner_test
 ```
   
-Since our test statistic $T* =$ `r round(con_test$T,digits=3)`, is outside the region (`r qnorm(0.025)`,`r qnorm(0.975)`), we can reject $H_0$ in favor of the alternative, that is $\sigma^2_{X} \neq \sigma^2_{Y}$. 
+Since our test statistic $\chi_{K}^2* =$ `r round(fligner_test$statistic,digits=3)`, is less than (`r qchisq(0.95, df = fligner_test$parameter)`), we fail to reject our null hypothesis, that is $H_0: \sigma^2_X = \sigma^2_Y$. 
 
-The calculation of p-value:
-First, the test does not assume that all populations are normally distributed and is recommended when the normality assumption is not viable.
-Second, Suppose there are g groups obey normal distribution with possibly different means and standard deviations $\sigma_1, \sigma_2,…, \sigma_g$. Let $n_1, n_2, …, n_g$ denote the number of subjects in each group, $Y_{ki}$ denote response values, and N denote
-the total sample size of all groups. The test assumes that the data are obtained by taking a simple random sample from each of the g populations.
-The formula for the calculation of Conover test is:
-
-$$T = \frac{1}{D^2}[\sum^{g}_{k=1}\frac{S^2_k}{n_k}-N \overline{S}]$$
-Where
-$$Z_{ki} = |Y_{ki}-\overline{Y}_k|$$
-$$R_{ki} = Rank(Z_{ki})$$
-$$S_k = \sum^{n_k}_{i=1}R^2_{ki}$$
-$$\overline{S} = \frac{1}{N}\sum^{g}_{k=1}S_k$$
-$$D^2 = \frac{1}{N-1}[\sum^{g}_{k=1}\sum^{n_k}_{i=1}R^4_{ki}-N\overline{S}^2]$$
- If the assumptions are met, the distribution of this test statistic follows approximately the Chi-squared distribution with degrees of freedom $g-1$. And then, we can use the p-value of Chi-square distribution to get the p-value of conover test.
+The calculation of p-value is based on our realized $\chi^2$ statistic which is computed:
+$$\chi_{K}^2* = \frac{\sum_{j=1}^{k}n_j(\bar{a_j} - \bar{a})^2}{s^2} $$
+Where $k = \text{number of groups}$, $n_j$ is the number of observations for the $j^{th}$ group, $\bar{a_j}$ is the mean of the median centered, and subsequently ranked observations for the $j^{th}$ group. $\bar{a}$ is the mean of all median centered, ranked observations, and $s^2$ is the variance of the same median centered ranked observations. If the assumptions are met, the distribution of this test statistic follows approximately the Chi-squared distribution with degrees of freedom $k-1$. We can use the Chi-square distribution to get the p-value of fligner test.
 
 ## Parametric F-test For Equal Variances
 
