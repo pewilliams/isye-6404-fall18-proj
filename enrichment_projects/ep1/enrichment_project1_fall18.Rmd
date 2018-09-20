@@ -1,4 +1,6 @@
 ---
+\usepackage[utf8]{inputnc}
+---
 title: 'Enrichment Project #1: Rank-based Methods'
 date: "`r format(Sys.time(), '%d %B %Y')`"
 author:
@@ -13,7 +15,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-suppressPackageStartupMessages(library(printr))
+#suppressPackageStartupMessages(library(printr))
 suppressPackageStartupMessages(library(conover.test))
 suppressPackageStartupMessages(library(car))
 suppressPackageStartupMessages(library(nortest))
@@ -193,15 +195,17 @@ fligner_test
   
 Since our test statistic $\chi_{K}^2* =$ `r round(fligner_test$statistic,digits=3)`, is less than (`r qchisq(0.95, df = fligner_test$parameter)`), we fail to reject our null hypothesis, that is $H_0: \sigma^2_X = \sigma^2_Y$. 
 
-The calculation of p-value is based on our realized $\chi^2$ statistic which is computed:
+The calculation of p-value is based on our realized $\chi^2$ statistic which is computed by:
 $$\chi_{K}^2* = \frac{\sum_{j=1}^{k}n_j(\bar{a_j} - \bar{a})^2}{V^2} $$
 Where $k = \text{number of groups}$, $n_j$ is the number of observations for the $j^{th}$ group, $\bar{a_j}$ is the mean of the median centered, ranked, and subsequently normalized observations for the $j^{th}$ group. $\bar{a}$ is the mean of all median centered, ranked and normalized observations, and $V^2$ is the sample variance of the same normalized observations. If the assumptions are met, the distribution of this test statistic follows approximately the Chi-squared distribution with degrees of freedom $k-1$. We can use the Chi-square distribution to get the p-value of Fligner test given our realized sample statistic.
 
 ## Parametric F-test For Equal Variances
 
 *4. Use the parametric F-test for equal variances to the data; comment on the difference of the assumptions and results compared to them in (iii).*  
-F-test for testing equality of variance is used to test the hypothesis of the equality of two population variances.
+F-test for testing equality of variance is used to test the hypothesis of the equality of two population X and Y's variances.
+Let $A_1, ..., A_n$ and $B_1, ..., B_m$ be independent and identically distributed samples from two populations which each have a normal distribution where the expected values for the two populations can be different.
 The test statistic can be obtained by computing the ratio of the two variances $S^2_A$ and $S^2_B$.
+$${\displaystyle S_{A}^{2}={\frac {1}{n-1}}\sum _{i=1}^{n}\left(A_{i}-{\overline {A}}\right)^{2}{\text{  and  }}S_{B}^{2}={\frac {1}{m-1}}\sum _{i=1}^{m}\left(B_{i}-{\overline {B}}\right)^{2}}$$
 $$F=\frac{S^2_A}{S^2_B}$$    
   
 The degrees of freedom are $n_A - 1$ (for the numerator) and $n_B - 1$ (for the denominator). And, the more this ratio deviates from $1$, the stronger the evidence for unequal population variances.  
@@ -210,11 +214,11 @@ The degrees of freedom are $n_A - 1$ (for the numerator) and $n_B - 1$ (for the 
 var.test(rider_data$bus, rider_data$rail_boardings, alternative = "two.sided")
 ```
   
-The result shows that the p-value $= 0.01772$ which is smaller than our $\alpha = 0.05$. In conclusion, there is significant difference between the two variances.
+The result shows that the p-value $= 0.9422$ and the ratio $= 1.00818$ which is significantly greater than our $\alpha = 0.05$ and close to 1. In conclusion, we can accept our null hypothesis that the two data have the same variance.
 
 Assumptions for Conover and F-test:
-According to the above, the Conover test does not assume that all populations are normally distributed.
-However, F-test is very sensitive to departure from the normal assumption. We use Q-Q plot (quantile-quantile plot) to graphically evaluate the normality of a variable.    
+
+According to the deviration above,the F-test is known to be extremely sensitive to non-normality and F-tests for the equality of variances can be used in practice, with care, particularly where both graphical and formal checks of the assumption.We use Q-Q plot (quantile-quantile plot) to graphically evaluate the normality of a variable.  
 
 ```{r qqplots, echo = F, include = T, fig.align='center',fig.height=4}
 #qqnorm(rider_data$bus, pch = 1, frame = FALSE)
@@ -222,9 +226,12 @@ However, F-test is very sensitive to departure from the normal assumption. We us
 options(scipen = 999)
 par(mfrow = c(1,2))
 qqPlot(rider_data$bus, xlab = 'Bus Boardings', main = 'Q-Q Plot - Bus Boardings')
- qqPlot(rider_data$rail, xlab = 'Rail Boardings', main = 'Q-Q Plot - Rail Boardings')
+qqPlot(rider_data$rail, xlab = 'Rail Boardings', main = 'Q-Q Plot - Rail Boardings')
 ```
-As we can see, there are many points don't fall approximately along this reference line, for both rail and bus boardings, so, we cannot assume normality for either sample.
+
+As we can see, Almost all the points fall into the reference line, for both rail and bus boardings, so, we can assume normality for either sample under Q-Q plot test. Therefore, we can use the F-test to test the equal variance of the two sample.
+
+However, the Conover is a nonparametric test of homogeneity (equal variance) based on ranks. It computes the Conover-Iman test for stochastic dominance and gives the results among multiple pairwise comparisons. The test does not assume that all populations are normally distributed and is recommended when the normality assumption is not viable.
 
 Results for Conover and F-test:
 Although the results are consistent based on this sample, Conover test is recommended when the normality assumption is not viable.
@@ -246,11 +253,13 @@ As we can see from the results of the test, the p-value is quite low, showing th
 ## Goodness of Fit Tests
 
 *6. Apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality to the two samples separately; comment on the findings by comparing results obtained from these four tests. Make a statement about the situation that a particular procedure might be more appropriate. Moreover, based on the results learned here, comment on whether the parametric methods used in (iv) and (v) are appropriate.*  
+First, Normality test is sensitive to sample size. Small samples most often pass normality tests. Therefore, it’s important to combine visual inspection and significance test in order to take the right decision.
+Second, apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality as below:
 
 Kolmogorov-Smirnov:
 ```{r ks.testing, echo = T, include = T}
-ks.test(rider_data$bus,"dnorm",mean(rider_data$bus),sd(rider_data$bus))
-ks.test(rider_data$rail_boardings,"dnorm",mean(rider_data$rail_boardings),sd(rider_data$rail_boardings))
+ks.test(rider_data$bus,"pnorm",mean(rider_data$bus),sd(rider_data$bus))
+ks.test(rider_data$rail_boardings,"pnorm",mean(rider_data$rail_boardings),sd(rider_data$rail_boardings))
 ```
 Anderson-Darling:
 ```{r adarling, echo = T, include = T}
@@ -268,7 +277,7 @@ shapiro.test(rider_data$bus)
 shapiro.test(rider_data$rail_boardings)
 ```
 Comparison of results:
-All the above methods (Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests) have the same result: rejest H0 under our sample. But the p-value of each test is significantly different which means the measurement for each one is different.
+Although all the above methods (Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests) have the same result: accept H0 under our sample, the p-value of each test is significantly different which means the measurement for each one is different.
 
 Appropriate situation for the four tests:
 Shapiro-Wilk test is the most powerful test for all types of distribution whereas Kolmogorov-Smimov test is the least powerful test. The performance of Anderson-Darling test is quite comparable with Shapiro-Wilk test. Cramer-Von Mises test is an alternative to the Kolmogorov–Smirnov test. However, the power of Shapiro-Wilk test is still low for small sample size.
@@ -290,7 +299,7 @@ Cramer-Von Mises statistic is defined as:
 $$U^2 = T-n(\overline{F}-\frac{1}{2})^2$$
 where
 $$\overline{F} = \frac{1}{n}\sum{F(x_i)}$$
- As a result, due to our data is not normally distributed and we have more than 300 data points, so in our opinion, it is more reasonable to choose Anderson-Darling test.
+ As a result, due to our data is normally distributed and we have more than 300 data points, so in our opinion, it is more reasonable to choose Shapiro-Wilk test.
 
 # 2) Multiple-Sample (ANOVA) Studies (60%):  
 
