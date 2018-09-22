@@ -10,7 +10,7 @@ import pandas as pd
 
 from scipy.stats import friedmanchisquare
 
-stock_df = pd.read_csv('/Users/akshaygovindaraj/Documents/Friedman.csv')
+stock_df = pd.read_csv('/Users/akshaygovindaraj/Documents/GitHub/isye-6404-fall18-proj/enrichment_projects/ep1/data/Friedman.csv')
 
 treatment1 = stock_df.values[:,1]
 treatment2 = stock_df.values[:,2]
