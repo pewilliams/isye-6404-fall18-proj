@@ -1,16 +1,17 @@
 ---
-\usepackage[utf8]{inputnc}
----
 title: 'Enrichment Project #1: Rank-based Methods'
-date: "`r format(Sys.time(), '%d %B %Y')`"
 author:
 - Yuan Gao, Kevin Lee, Akshay Govindaraj
 - Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang
 - ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu
+date: '2018-09-25'
 output:
-  pdf_document: 
+  pdf_document:
     toc: yes
     toc_depth: 2
+  word_document:
+    toc: yes
+    toc_depth: '2'
 ---
 
 ```{r setup, include=FALSE}
@@ -107,7 +108,7 @@ ggplot(melted_rider_data, aes(x = value/1e06, fill = variable)) +
       xlab('Daily Ridership') + ggtitle('Density Plots: Daily Boardings by Type (mms)')
 ```
 
-If we plot the density functions and histograms, we can see the distributions seem to resemble normal distributions, and they do resemble each other in terms of their "shape". 
+If we plot the density, we can see the distributions seem to resemble normal distributions, and they do resemble each other in terms of their "shape". 
 
 ```{r wilcox_rank, echo = T, include = T}
 #Performing the Wilcoxon Rank Sum Test/Mann Whitney U Test
@@ -125,34 +126,42 @@ where $n_1$ is the sample size of the first sample (observations in bus ridershi
 $S_{i}$ is an indicator function with value is 1 if ith ranked observation is from the first sample or 0 if from the second sample.
 [cite textbook]
 
-The expected value of the W_n statistic is where the distrition will be centered around, and the variance of the statistic will be the symmetrical spread around that center: 
+The expected value of the $W_n$ statistic is where the distrition will be centered around, and the variance of the statistic will be the symmetrical spread around that center: 
 
-$E(W_{n}) = [n_{1}(n+1)]/2$$
+$$E(W_{n}) = [n_{1}(n+1)]/2$$
 
 $$Var(W_{n}) = [n_{1}n_{2}(n+1)]/12$$
 
 As the test statistic is a linear rank statistic, we can then deduce that the W statistic is distributed approximately normally as long as the sample sizes are large enough (at least 10 observations per sample). We can then calculate the right-tail probability using Z-score with normal approximation with the following distribution:
 
-$$W_{n} ~ N([n_1 (n+1)]/2 , [n_1 (n_2) (n+1)]/12)$$
+$$W_{n} \sim N([n_1 (n+1)]/2 , [n_1 (n_2) (n+1)]/12)$$
 
 The Mann-Whitney U statistic is used to calculate p-value much in the same manner of the Wilcoxon Rank Sum Test. The test statistic can be calculated as such: 
 
 $$U = \sum^{n1}_{i=1}\sum^{n2}_{j=1} D_{ij}$$
 
-The test statisic U and W end up becoming the same value, used in the same approximately normal distribution as the W_{n} statistic, which means we can use the same tail probability to find the p-value.
+The test statisic U and W end up becoming the same value, used in the same approximately normal distribution as the $W_{n}$ statistic, which means we can use the same tail probability to find the p-value.
 
-In order to apply the Wilcoxon Signed-Rank Test, we will need to use a different set of data to demonstrate the test in R. For this purpose, we will use the data from this site: https://www.sheffield.ac.uk/polopoly_fs/1.569449!/file/stcp-Rdataset-Video.csv. 
+In order to apply the Wilcoxon Signed-Rank Test, we will need to use a different set of data to demonstrate the test in R. For this purpose, we will use the data from this site:  https://www.sheffield.ac.uk/polopoly_fs/1.569449!/file/stcp-Rdataset-Video.csv.  
+
 A professor at the University of Sheffield collected data using "Likert" style questions to determine which of three new videos are most effective in informing the public of medical conditions. The four videos in questions are deemed the following: A, a new general video; B, a new medical profession video; C, the old video; and D, a demonstration using props. In this dataset, there are two particular variables of interest, and they are "TotalAGen" and "TotalDDEMO". These two variables are essentially the overall summed "Likert Scores" for each of the different types of videos. Our paired data will be between the scaled overall scores between video A's reception  and video D's reception. 
 
-``` {r sign_rank, echo = T, include= T, fig.align='center',fig.height=3}
+``` {r sign_rank, echo = F, include= T, fig.align='center',fig.height=3}
 #For performing the Wilcoxon Signed Rank Test, download the dataset
-video_data=read.csv('https://www.sheffield.ac.uk/polopoly_fs/1.569449!/file/stcp-Rdataset-Video.csv')
+video_data=read.csv('data/sheffield_video_data.csv',header=T)
 #Wilcoxon Signed Rank Test, with paired data
-wilcox.test(video_data$TotalAGen,video_data$TotalDDEMO, paired=T)
+suppressWarnings(wilcox.test(video_data$TotalAGen,video_data$TotalDDEMO, paired=T))
 #Showing nonnormal distributions of the sample data
-par(mfrow = c(1,2))
-hist(video_data$TotalAGen, xlab ="TotalAGen" , ylab = "Count" , main ="Histogram: Video TotalAGen" , bty = 'n')
-hist(video_data$TotalDDEMO, xlab = "TotalDDEMO", ylab = "Count",main = "Histogram: Video TotalDDemo", bty='n')
+melted_video_data <- melt(video_data[,c('TotalAGen','TotalDDEMO')], measure.vars = c('TotalAGen','TotalDDEMO'))
+
+ggplot(melted_video_data, aes(x = value, fill = variable)) + 
+  geom_density(alpha = 0.3) + theme_bw() + 
+    xlab('Summed Likert Scores') + ggtitle('Density Plots: Video Types {A, D}')
+
+#original base plot
+# par(mfrow = c(1,2))
+# hist(video_data$TotalAGen, xlab ="TotalAGen" , ylab = "Count" , main ="Histogram: Video TotalAGen" , bty = 'n')
+# hist(video_data$TotalDDEMO, xlab = "TotalDDEMO", ylab = "Count",main = "Histogram: Video TotalDDemo", bty='n')
 ```
 
 We can assume the independence of each observation (person) as well as the fact that they should come from the same population (differences should be symmetric about 0). The data are also paired, so we can follow through with the test now that the assumptions are met. Through the Wilcoxon Signed Rank Test, we can see that the test statistic V = 167.5, which leads us to a p-value below our assumed alpha level of 0.05. Thus, we can reject the null hypothesis that the two sample distributions (Scores of Video A compared to scores of Video D) are the same. 
@@ -171,13 +180,12 @@ where n is the number of non-tied ranked observations. With this information, on
 With larger sample sizes though, the distribution of the W statistic for the signed rank test also tends to follow normal approximation, which allows the use of z-score approximation to determine p-value through tail probability.
 
 
-
 ## Fligner Test for Equal Variances
 *3. Use Fligner test for equal variances in these two samples. Explain how to calculate its p-value.*  
 
 We again show a density plot that visualizes the counts of daily bus and rail ridership illustrating that variance of daily ridership seems homogenous across ride modality. Both ridership types also seems to be spread symmetrically around their central point as shown here: 
 
-```{r histo, include = T, echo=T, fig.align='center',fig.height=3}
+```{r histo, include = T, echo=F, fig.align='center',fig.height=3}
 boardings <- c(rider_data$bus, rider_data$rail_boardings)
 factor_level <- factor(c(rep('bus',nrow(rider_data)), rep('rail',nrow(rider_data))))
 ggplot(melted_rider_data, aes(x = value/1e06, fill = variable)) + 
@@ -225,8 +233,8 @@ According to the deviration above,the F-test is known to be extremely sensitive 
 #qqline(rider_data$bus, col = "steelblue", lwd = 2)
 options(scipen = 999)
 par(mfrow = c(1,2))
-qqPlot(rider_data$bus, xlab = 'Bus Boardings', main = 'Q-Q Plot - Bus Boardings')
-qqPlot(rider_data$rail, xlab = 'Rail Boardings', main = 'Q-Q Plot - Rail Boardings')
+qqPlot(rider_data$bus, xlab = 'Bus Boardings',ylab  = 'Theoretical Quantiles' ,main = 'Q-Q Plot - Bus Boardings')
+qqPlot(rider_data$rail, xlab = 'Rail Boardings',ylab  = 'Theoretical Quantiles' ,main = 'Q-Q Plot - Rail Boardings')
 ```
 
 As we can see, Almost all the points fall into the reference line, for both rail and bus boardings, so, we can assume normality for either sample under Q-Q plot test. Therefore, we can use the F-test to test the equal variance of the two sample.
@@ -253,6 +261,7 @@ As we can see from the results of the test, the p-value is quite low, showing th
 ## Goodness of Fit Tests
 
 *6. Apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality to the two samples separately; comment on the findings by comparing results obtained from these four tests. Make a statement about the situation that a particular procedure might be more appropriate. Moreover, based on the results learned here, comment on whether the parametric methods used in (iv) and (v) are appropriate.*  
+
 First, Normality test is sensitive to sample size. Small samples most often pass normality tests. Therefore, it’s important to combine visual inspection and significance test in order to take the right decision.
 Second, apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality as below:
 
