@@ -289,17 +289,19 @@ Comparison of results:
 Although all the above methods (Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests) have the same result: accept H0 under our sample, the p-value of each test is significantly different which means the measurement for each one is different.
 
 Appropriate situation for the four tests:
-Shapiro-Wilk test is the most powerful test for all types of distribution whereas Kolmogorov-Smimov test is the least powerful test. The performance of Anderson-Darling test is quite comparable with Shapiro-Wilk test. Cramer-Von Mises test is an alternative to the Kolmogorov–Smirnov test. However, the power of Shapiro-Wilk test is still low for small sample size.
+Shapiro-Wilk test is the most powerful test for all types of distribution which is customized from Normal whereas Kolmogorov-Smimov test is the least powerful test which perform well only for uniform distribution that don't need boundary. The performance of Anderson-Darling test is quite comparable with Shapiro-Wilk test. Cramer-Von Mises test is an alternative to the Kolmogorov–Smirnov test. However, the power of Shapiro-Wilk test is still low for small sample size.
 
 Kolmogorov-Smimov is based on the empirical distribution function (ECDF), and the maximum distance between these two curves. So, it is indepedent with the underlying cumulative distribution function being tested. But, it is sensitive on the center of the distribution than at the tails.It is suitable for small samples, ties are no problem and has omnibus test, but it is low power if prerequisites are not met.
 The Kolmogorov-Smimov test statistic is defined as
 $$D = \max_{1 \le i \le N}(F(Y_{i}) - \frac{i} {N}, \frac{i}{N} - F(Y_{i}))$$
+And,Cramer-Von Mises test is an alternative to the Kolmogorov–Smirnov test.
 
-Anderson-Darling testis used to test samples with a specific distribution. It is a modification of the Kolmogorov-Smirnov (K-S) test and gives more weight to the tails than does the K-S test. It is high power when testing for normal distribution but is statistic based on squares.
+Anderson-Darling testis used to test samples with a specific distribution. It is a modification of the Kolmogorov-Smirnov (K-S) test and gives more weight to the tails than does the K-S test which sharpens the test. It is high power when testing for normal distribution but is statistic based on squares.But its critical values must be calculated for each hypothesized distribution.
 The Anderson-Darling test statistic is defined as
 $$A^{2} = -N - S$$
 where
 $$S = \sum_{i=1}^{N}\frac{(2i - 1)}{N}[\ln{F(Y_{i})} + \ln{(1 - F(Y_{N+1-i}))}]$$
+
 Shapiro-Wilk test calculates a W statistic that tests whether a random sample, $x_1,x_2,…,x_n$ comes from (specifically) a normal distribution. It is highest power among all tests for normality but test for normality only.
 The W statistic is calculated as follows:
 $$W = \frac{\left( \sum_{i=1}^n a_i x_{(i)} \right)^2}{\sum_{i=1}^n (x_i - \bar{x})^2}$$
@@ -308,8 +310,8 @@ Cramer-Von Mises statistic is defined as:
 $$U^2 = T-n(\overline{F}-\frac{1}{2})^2$$
 where
 $$\overline{F} = \frac{1}{n}\sum{F(x_i)}$$
- As a result, due to our data is normally distributed and we have more than 300 data points, so in our opinion, it is more reasonable to choose Shapiro-Wilk test.
-
+As a result, due to our data is normally distributed and we have more than 300 data points, so in our opinion, it is more reasonable to choose Shapiro-Wilk test.
+Because we normalized our ridership data which allows us to be able to perform the parametric F-test and t-test in (iv) and (v).So, in our case, it is appropriate. 
 # 2) Multiple-Sample (ANOVA) Studies (60%):  
 
 *Locate one data set each for the two problems below in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the following procedures for ANOVA studies.*  
