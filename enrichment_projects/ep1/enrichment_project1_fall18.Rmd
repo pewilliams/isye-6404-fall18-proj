@@ -431,7 +431,7 @@ Below is a description of tasks and the distribution of work (%) by team member 
 \hline
 Team Member & Task Description & Distribution \\
 \hline
-Yuan Gao & cell & cell \\ 
+Yuan Gao & Sections 1.4 \& 1.6 Code Compilation & cell \\ 
 Kevin Lee & cell & cell \\ 
 Akshay Govindaraj & cell & cell \\ 
 Yijun (Emma) Wan & cell & cell \\ 
