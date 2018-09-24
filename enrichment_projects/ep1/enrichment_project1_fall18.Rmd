@@ -80,7 +80,7 @@ knitr::kable(round(data.frame(lapply(cor_result, sd)),digits=4),row.names=F,
              caption = 'Sample Standard Deviation: Bootstrap Sample Correlation')
 ```
 
-Density plots of these statistics are shown here, and provide visual evidence that the spearman rank correlation results and kendall's tau have more similar results than the parametric pearson's correlation: 
+Density plots of these statistics are shown here, and provide visual evidence that the spearman rank correlation results and the parametrics pearson's correlation have more similar results than the kendall's tau correlation which was consistently lower: 
 
 ```{r den_cor, include=T,echo=T,fig.align = 'center',fig.height = 3}
 melt_cor_result <- melt(cor_result, measure.vars = c('pearson','spearman','kendall'))
@@ -265,30 +265,32 @@ As we can see from the results of the test, the p-value is quite low, showing th
 First, Normality test is sensitive to sample size. Small samples most often pass normality tests. Therefore, it’s important to combine visual inspection and significance test in order to take the right decision.
 Second, apply Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests for normality as below:
 
-Kolmogorov-Smirnov:
+Kolmogorov-Smirnov:  
 ```{r ks.testing, echo = T, include = T}
 ks.test(rider_data$bus,"pnorm",mean(rider_data$bus),sd(rider_data$bus))
 ks.test(rider_data$rail_boardings,"pnorm",mean(rider_data$rail_boardings),sd(rider_data$rail_boardings))
 ```
-Anderson-Darling:
+Anderson-Darling:  
 ```{r adarling, echo = T, include = T}
 ad.test(rider_data$bus)
 ad.test(rider_data$rail_boardings)
 ```
-Cramer-Von Mises:
+Cramer-Von Mises:  
 ```{r cvm.test, echo = T, include = T}
 cvm.test(rider_data$bus)
 cvm.test(rider_data$rail_boardings)
 ```
-Shapiro-Wilk:
+Shapiro-Wilk:  
 ```{r sw.test, echo = T, include = T}
 shapiro.test(rider_data$bus)
 shapiro.test(rider_data$rail_boardings)
 ```
-Comparison of results:
-Although all the above methods (Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests) have the same result: accept H0 under our sample, the p-value of each test is significantly different which means the measurement for each one is different.
+Comparison of results:  
 
-Appropriate situation for the four tests:
+Although all the above methods (Kolmogorov-Smirnov, Anderson-Darling, Cramer-Von Mises, Shapiro-Wilk Tests) have the same result, i.e. accept $H_0$, the realized p-value of each test was different.
+
+Appropriate situation for the four tests:  
+
 Shapiro-Wilk test is the most powerful test for all types of distribution which is customized from Normal whereas Kolmogorov-Smimov test is the least powerful test which perform well only for uniform distribution that don't need boundary. The performance of Anderson-Darling test is quite comparable with Shapiro-Wilk test. Cramer-Von Mises test is an alternative to the Kolmogorov–Smirnov test. However, the power of Shapiro-Wilk test is still low for small sample size.
 
 Kolmogorov-Smimov is based on the empirical distribution function (ECDF), and the maximum distance between these two curves. So, it is indepedent with the underlying cumulative distribution function being tested. But, it is sensitive on the center of the distribution than at the tails.It is suitable for small samples, ties are no problem and has omnibus test, but it is low power if prerequisites are not met.
@@ -364,8 +366,26 @@ The box plot told us that 3-citric acid, 4-residual sugar, 5-chlorides, and 6-fr
 
 *2. Use Friedman test and also the F-Test discussed in the textbook page 148 for the study of one-way ANOVA with one blocking variable. Comment on your findings. If it is suitable, perform a K-W pairwise comparisons. Make conclusions about your findings.*  
 
-```{r friedman_test, echo = T, include = T}
+To perform the Friedman test, we utilize a dataset retrieved from a website that provides tutorial's on performance statistical tests in R, that is shown below. The dataset consists of generic health measurements of patients who have been exposed to three different anonymized treatments, shown here: 
+
+```{r show_patients, echo=F, include = T}
 tdat = read.csv(file = 'data/Friedman.csv', header = T)
+knitr::kable(tdat, caption = 'Patient & Treatment Data: 2.2')
+```
+
+*Source: http://www.statisticshowto.com/friedmans-test/*
+
+A line plot, is shown below, where the x-axis represents each patient id, and the y-axis represents health measures, and the color of each line represents the three treatments on which health measures were collected: 
+
+```{r patient_line, echo=F, include = T, fig.align='center',fig.height=3}
+melt_patient <- melt(tdat, id.vars = 'Patient')
+ggplot(melt_patient, aes(x = Patient, y = value, color = variable)) + geom_line(size = 1.5) + ggtitle('Health Measure, by Patient ID and Treatment') + ylab('Health Measure') + xlab('Patient ID') + theme_bw()
+```
+
+Using the Friedman test will help us identify whether the 3 kinds of treatments are from the same distribution or not.
+
+
+```{r friedman_test, echo = T, include = T}
 tdat = tdat[,!names(tdat) %in% c("Patient")]    # Removing extra Varialbe
 mymatrix = as.matrix(tdat)
 result = friedman.test(t(mymatrix))
@@ -377,6 +397,18 @@ pF <- 1-pf(F,k-1,(b-1)*(k-1))
 print(result);
 print(c(F,pF));
 ```
+
+```{r doe, include = T, echo = F}
+r = c(t(as.matrix(tdat))) # response data 
+f1 = c("Treatment.1", "Treatment.2", "Treatment.3")
+f2 = c("1", "2","3","4","5","6","7","8","9","10","11","12")
+k1 = length(f1)
+n = length(f2)
+tm1 = gl(k1, 1, n*k1, factor(f1))
+av = aov(r ~ tm1)
+summary(av)
+```
+
 
 
 ## Variance Testing    
@@ -422,7 +454,7 @@ $H_0$: Sample groups have common variance.
 $H_{\alpha}$: At least one group has different variance from others.
 Levene Test for studies in (i)
 
-```{r levene_var, echo = T, include = T}
+```{r levene_var1, echo = T, include = T}
 with(wdat, leveneTest(density,factor(quality)))
 ```
 
@@ -433,7 +465,7 @@ Basically, in a conclusion, these data are not suitable for parametric mean test
 
 Leveve Test for studies in (ii):
 
-```{r levene_var, echo = T, include = T}
+```{r levene_var2, echo = T, include = T}
 melted_tdat <- melt(tdat, id.vars = NULL)
 with(melted_tdat, leveneTest(value,variable))
 ```
@@ -460,16 +492,16 @@ The output includes the columns F value and Pr(>F) corresponding to the p-value 
 Below is a description of tasks and the distribution of work (%) by team member for this project:  
 
 \begin{center}
-\begin{tabular}{ |l|l|c| } 
+\begin{tabular}{ |l|l| } 
 \hline
-Team Member & Task Description & Distribution \\
+Team Member & Task Description  \\
 \hline
-Yuan Gao & Sections 1.4 \& 1.6 Code Compilation & cell \\ 
-Kevin Lee & Description of transformed data, Sections 1.2 \& 1.5 & cell \\ 
-Akshay Govindaraj & cell & cell \\ 
-Yijun (Emma) Wan & cell & cell \\ 
-Peter Williams & Proj. Management, Sections 1.1-1.3 Code Compilation, Debugging & 16 \\ 
-Ruixuan Zhang & cell8 & cell \\ 
+Yuan Gao & Sections 1.4 \& 1.6, Code Compilation \\ 
+Kevin Lee & Description of transformed data, Sections 1.2 \& 1.5  \\ 
+Akshay Govindaraj & 2.2,2.4, one-way tests, and "DOE"  \\ 
+Yijun (Emma) Wan & 2.1, normality tests and 2.4  \\ 
+Peter Williams & Proj. Management, Sections 1.1-1.3, Code Compilation, Debugging  \\ 
+Ruixuan Zhang & cell \\ 
 \hline
 \end{tabular}
 \end{center}
