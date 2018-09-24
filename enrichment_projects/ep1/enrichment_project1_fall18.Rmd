@@ -311,18 +311,60 @@ $$U^2 = T-n(\overline{F}-\frac{1}{2})^2$$
 where
 $$\overline{F} = \frac{1}{n}\sum{F(x_i)}$$
 As a result, due to our data is normally distributed and we have more than 300 data points, so in our opinion, it is more reasonable to choose Shapiro-Wilk test.
-Because we normalized our ridership data which allows us to be able to perform the parametric F-test and t-test in (iv) and (v).So, in our case, it is appropriate. 
+Because we normalized our ridership data which allows us to be able to perform the parametric F-test and t-test in (iv) and (v).So, in our case, it is appropriate.  
+
 # 2) Multiple-Sample (ANOVA) Studies (60%):  
 
 *Locate one data set each for the two problems below in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the following procedures for ANOVA studies.*  
+
 
 ## Kruskal-Wallis Test  
 
 *1. Apply Kruskal-Wallis Test for an one-way ANOVA study. If it is suitable, perform a K- W pairwise comparisons. Make conclusions about your findings.*  
 
+The Kruskal-Wallis (KW) test is a logical extension of the Wilcoxon-Mann-Whitney  test.  It  is  a  nonparametric  test  used  to  compare  three  or more samples.  It  is  used  to  test  the  null  hypothesis  that  all  populations  have identical distribution functions against the alternative hypothesis that at least two of the samples differ only with respect to location (median), if at all.
+
+We found a dataset relating to red variants of the Portuguese “Vinho Verde” wine. Input variables are 1 - fixed acidity 2 - volatile acidity 3 - citric acid 4 - residual sugar 5 - chlorides 6 - free sulfur dioxide 7 - total sulfur dioxide 8 - density 9 - pH 10 - sulphates 11 - alcohol Output variable (based on sensory data): 12 - quality (score between 0 and 10). 
+
+Data source: 
+https://www.kaggle.com/uciml/red-wine-quality-cortez-et-al-2009
+
+Often the quality of wine is attributed to the physical properties like density, color. We can use KW test to check if that is true.
+
+We used 8-density and 12-quality to perform the KW test. 
+```{r loadwin, echo = F, include=T}
+wdat <- read.csv('data/winequality-red.csv',header = T, stringsAsFactors=F)
+kruskal.test(density~quality, data = wdat)
+```
+  
+The result shows that p-value is small enough to reject the null hypothesis, which means density and quality do not have identical distribution functions and therefore aspects other than the physical property also contribute to the quality of wine.
+
+Since the KW test detects the differences of red variants, we can determine if two particular red variants group are different at level alpha. Then we performed a K-W pairwise comparisons to the above dataset. 
+
+```{r posthoccon, echo =F, include = T}
+suppressWarnings(suppressMessages(library(PMCMR)))
+suppressWarnings(suppressMessages(with(wdat, posthoc.kruskal.conover.test(x = density, g = quality, dist = 'Tukey'))))
+```
+  
+The above test gives us more insight into how density on different qualities relate with each other. In many cases wine of certain quality appears to have similar density as other similar quality wine, like in the case of quality 7 and 8, as well as quality 3 and 4. But for the pairs (5,6) and (6,7) there is good reason the believe that they are unrelated and therefore it may be the case that the seemingly related qualities are just coincidental.  
+
+\newpage  
+
+Here’s the box plot showing the relations of the above data. 
+
+```{r winebox, echo = F, include = T, fig.align='center',fig.height=3}
+ggplot(wdat, aes(x = quality, y = density, group = quality)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  scale_x_continuous("Quality Class", labels = as.character(wdat$quality), breaks = wdat$quality) + ggtitle('Boxplot: Density by Wine Quality Classification') + ylab("Density") + theme_bw()
+```
+
+
+The box plot told us that 3-citric acid, 4-residual sugar, 5-chlorides, and 6-free sulfur dioxide are normally distributed. 5-chlorides has lots of outliers. 
+
 ## Friedman Test  
 
 *2. Use Friedman test and also the F-Test discussed in the textbook page 148 for the study of one-way ANOVA with one blocking variable. Comment on your findings. If it is suitable, perform a K-W pairwise comparisons. Make conclusions about your findings.*  
+
+
 
 ## Variance Testing    
 
