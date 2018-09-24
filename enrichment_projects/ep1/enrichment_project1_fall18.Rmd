@@ -350,7 +350,8 @@ The above test gives us more insight into how density on different qualities rel
 
 \newpage  
 
-Here’s the box plot showing the relations of the above data.  
+Here’s the box plot showing the relations of the above data:  
+
 
 
 ```{r winebox, echo = F, include = T, fig.align='center',fig.height=3}
@@ -385,4 +386,58 @@ Our observations of wine density are simply grouped by quality. It turns out tha
 ## Parametric Two Sample Testing 
 
 *4. Repeat the same studies in (i), (ii) and (iii) using parametric approaches (also include the possible pairwise comparisons). State the assumptions needed for the parametric approaches. Compare the results here against those in (i), (ii) and (iii), respectively. Note that if there are certain assumptions (e.g., normality and equal-variance) required in the parametric studies, please apply appropriate procedures to “test” the assumption.*  
+
+ANOVA test hypotheses:
+Null hypothesis: the means of the different groups are the same
+Alternative hypothesis: At least one sample mean is not equal to the others.
+Assumptions:
+The observations are obtained independently and randomly from the population defined by the factor levels
+The data of each factor level are normally distributed.
+These normal populations have a common variance. (Levene’s test can be used to check this.)
+Normality test - Shapiro test: 
+
+$H_0$: the population is normally distributed. 
+$H_{\alpha}$: the population is not normally distributed. 
+
+```{r shapiro_tests, echo = T, include = T}
+with(wdat, shapiro.test(x = quality))
+with(wdat, shapiro.test(x = density))
+```
+
+Since the p-value is less than the chosen alpha level ($\alpha = 0.05)$), in both cases, then the null hypothesis is rejected and there is evidence that the data tested are not normally distributed.  
+
+Equal-variance test:
+Levene’s test - car package:
+One-way ANOVA test:
+
+$H_0: \mu_1 = \mu2 = ... = \mu_k$, i.e. means are the same across groups. 
+$H_{\alpha}: \mu_i \neq \mu_j \text{ for some } i \neq j$, i.e. observed mean is different for some pairing.
+
+```{r anova_levene, echo = T, include = T}
+res.aov <- aov(density~factor(quality), data = wdat)
+summary(res.aov)
+```
+
+The output includes the columns F value and Pr(>F) corresponding to the p-value of the test. As the p-value is less than the significance level 0.05, we can conclude that there are significant differences between the groups highlighted with “*" in the model summary. Given our observed test statistic, we can reject our null hypothesis, in favor of our alternative, that observed means are different for some pairing in the data. 
+
+\newpage
+
+# 3) Workload Distribution
+
+Below is a description of tasks and the distribution of work (%) by team member for this project:  
+
+\begin{center}
+\begin{tabular}{ |l|l|c| } 
+\hline
+Team Member & Task Description & Distribution \\
+\hline
+Yuan Gao & cell & cell \\ 
+Kevin Lee & cell & cell \\ 
+Akshay Govindaraj & cell & cell \\ 
+Yijun (Emma) Wan & cell & cell \\ 
+Peter Williams & Proj. Management, Sections 1.1-1.3 Code Compilation, Debugging & 16 \\ 
+Ruixuan Zhang & cell8 & cell \\ 
+\hline
+\end{tabular}
+\end{center}
 
