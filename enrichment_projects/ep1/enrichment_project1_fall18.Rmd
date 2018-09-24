@@ -233,8 +233,8 @@ According to the deviration above,the F-test is known to be extremely sensitive 
 #qqline(rider_data$bus, col = "steelblue", lwd = 2)
 options(scipen = 999)
 par(mfrow = c(1,2))
-qqPlot(rider_data$bus, xlab = 'Bus Boardings',ylab  = 'Theoretical Quantiles' ,main = 'Q-Q Plot - Bus Boardings')
-qqPlot(rider_data$rail, xlab = 'Rail Boardings',ylab  = 'Theoretical Quantiles' ,main = 'Q-Q Plot - Rail Boardings')
+qqPlot(rider_data$bus, xlab = 'Bus Boardings',ylab  = 'Theoretical Quantiles' ,main = 'Q-Q Plot - Bus Boardings') 
+qqPlot(rider_data$rail, xlab = 'Rail Boardings',ylab  = 'Theoretical Quantiles' ,main = 'Q-Q Plot - Rail Boardings') 
 ```
 
 As we can see, Almost all the points fall into the reference line, for both rail and bus boardings, so, we can assume normality for either sample under Q-Q plot test. Therefore, we can use the F-test to test the equal variance of the two sample.
@@ -350,7 +350,8 @@ The above test gives us more insight into how density on different qualities rel
 
 \newpage  
 
-Here’s the box plot showing the relations of the above data. 
+Here’s the box plot showing the relations of the above data.  
+
 
 ```{r winebox, echo = F, include = T, fig.align='center',fig.height=3}
 ggplot(wdat, aes(x = quality, y = density, group = quality)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
@@ -368,7 +369,18 @@ The box plot told us that 3-citric acid, 4-residual sugar, 5-chlorides, and 6-fr
 
 ## Variance Testing    
 
-*3. Conduct a variance test based on the procedure (Conover test) given in Section 8.3 textbook. Comment on your findings.* 
+*3. Conduct a variance test based on the Fligner procedure discussed in class. Comment on your findings.* 
+
+Because the Conover Test in R is for Multiple Comparisons, which is not suitable for equal variance testing, we will use Fligner-Killeen Test instead, which can be found in “car” package in R. The Fligner-Killeen (median) Test is a non-parametric test for checking the homogeneity of variance between groups of samples which is very robust against departures from normality. We conduct this test using the red wine quality dataset described in section 2.1. Here is the hypothesis test setup: 
+
+Null hypothesis $H_0$: Variances equals in all groups. 
+Alternative hypothesis $H_{\alpha}$: At least one variance is different from others in sample groups.
+
+```{r flignertest_wine, echo = F, include = T}
+fligner.test(density ~ quality,data=wdat)
+```
+  
+Our observations of wine density are simply grouped by quality. It turns out that p-value is small and $H_0$ is rejected, so variances in density are considered inconsistent on different qualities. That is, there is no homogeneity in variance of wine density across quality classifications.  
 
 ## Parametric Two Sample Testing 
 
