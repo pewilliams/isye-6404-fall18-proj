@@ -4,7 +4,7 @@ author:
 - Yuan Gao, Kevin Lee, Akshay Govindaraj
 - Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang
 - ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu
-date: '2018-09-25'
+date: '2018-09-24'
 output:
   pdf_document:
     toc: yes
@@ -353,19 +353,30 @@ The above test gives us more insight into how density on different qualities rel
 Here’s the box plot showing the relations of the above data:  
 
 
-
 ```{r winebox, echo = F, include = T, fig.align='center',fig.height=3}
 ggplot(wdat, aes(x = quality, y = density, group = quality)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   scale_x_continuous("Quality Class", labels = as.character(wdat$quality), breaks = wdat$quality) + ggtitle('Boxplot: Density by Wine Quality Classification') + ylab("Density") + theme_bw()
 ```
-
-
+  
 The box plot told us that 3-citric acid, 4-residual sugar, 5-chlorides, and 6-free sulfur dioxide are normally distributed. 5-chlorides has lots of outliers. 
 
 ## Friedman Test  
 
 *2. Use Friedman test and also the F-Test discussed in the textbook page 148 for the study of one-way ANOVA with one blocking variable. Comment on your findings. If it is suitable, perform a K-W pairwise comparisons. Make conclusions about your findings.*  
 
+```{r friedman_test, echo = T, include = T}
+tdat = read.csv(file = 'data/Friedman.csv', header = T)
+tdat = tdat[,!names(tdat) %in% c("Patient")]    # Removing extra Varialbe
+mymatrix = as.matrix(tdat)
+result = friedman.test(t(mymatrix))
+S <- as.numeric(result$statistic)
+b <- dim(t(mymatrix))[1];
+k <- dim(t(mymatrix))[2];
+F <- (b-1)*S/(b*(k-1)-S);
+pF <- 1-pf(F,k-1,(b-1)*(k-1))
+print(result);
+print(c(F,pF));
+```
 
 
 ## Variance Testing    
@@ -407,7 +418,29 @@ with(wdat, shapiro.test(x = density))
 Since the p-value is less than the chosen alpha level ($\alpha = 0.05)$), in both cases, then the null hypothesis is rejected and there is evidence that the data tested are not normally distributed.  
 
 Equal-variance test:
-Levene’s test - car package:
+$H_0$: Sample groups have common variance.
+$H_{\alpha}$: At least one group has different variance from others.
+Levene Test for studies in (i)
+
+```{r levene_var, echo = T, include = T}
+with(wdat, leveneTest(density,factor(quality)))
+```
+
+As a result, p-value in the Levene Test is too small to accept $H_0$, so we have evidence that the variance in each groups of wine density is not equal, which violates the assumption in parametric test.
+
+In (ii), we got the same conclusion as in (i), $H_0$ is rejected according to small p-value, the 3 samples of treatments do not have same variance, which is also inconsistent with the equal-variance assumption. The samples have distinct variances, which agrees the conclusion that they do not come from same distribution in 2(i) and 2(ii).
+Basically, in a conclusion, these data are not suitable for parametric mean test because of violation of basic assumption, and nonparametric approaches perform better in this case.
+
+Leveve Test for studies in (ii):
+
+```{r levene_var, echo = T, include = T}
+melted_tdat <- melt(tdat, id.vars = NULL)
+with(melted_tdat, leveneTest(value,variable))
+```
+
+In (ii), we got the same conclusion as in (i), $H_0$ is rejected according to small p-value, the 3 samples of treatments do not have same variance, which is also inconsistent with the equal-variance assumption. The samples have distinct variances, which agrees the conclusion that they do not come from same distribution in 2(i) and 2(ii).
+Basically, in a conclusion, these data are not suitable for parametric mean test because of violation of basic assumption, and nonparametric approaches perform better in this case.
+
 One-way ANOVA test:
 
 $H_0: \mu_1 = \mu2 = ... = \mu_k$, i.e. means are the same across groups. 
