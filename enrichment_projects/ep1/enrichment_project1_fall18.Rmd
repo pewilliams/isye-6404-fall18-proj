@@ -297,7 +297,7 @@ Shapiro-Wilk test is the most powerful test for all types of distribution which 
 Kolmogorov-Smimov is based on the empirical distribution function (ECDF), and the maximum distance between these two curves. So, it is indepedent with the underlying cumulative distribution function being tested. But, it is sensitive on the center of the distribution than at the tails.It is suitable for small samples, ties are no problem and has omnibus test, but it is low power if prerequisites are not met.
 The Kolmogorov-Smimov test statistic is defined as
 $$D = \max_{1 \le i \le N}(F(Y_{i}) - \frac{i} {N}, \frac{i}{N} - F(Y_{i}))$$
-And,Cramer-Von Mises test is an alternative to the Kolmogorov–Smirnov test.
+The Cramer-Von Mises test is an alternative to the Kolmogorov–Smirnov test.
 
 Anderson-Darling testis used to test samples with a specific distribution. It is a modification of the Kolmogorov-Smirnov (K-S) test and gives more weight to the tails than does the K-S test which sharpens the test. It is high power when testing for normal distribution but is statistic based on squares.But its critical values must be calculated for each hypothesized distribution.
 The Anderson-Darling test statistic is defined as  
