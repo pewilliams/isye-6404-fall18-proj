@@ -18,10 +18,48 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(reshape2))
+suppressPackageStartupMessages(library(survival))
 ```
 
 ## 1. K-M Estimation (25%):
 *Locate a data set with right-censoring (in Type-I Censoring) in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the K-M Estimator to estimate the survival function with pointwise confidence intervals.*  
+
+For this exercise, we located a dataset, that consists of measures on 69 different patients who received a heart transplant, taken from the first edition of the text *The Statistical Analysis of Failure Time Data* by Kalbfleisch and Prentice, Appendix I (230-232), published originally in 1980, which can also be found via the following link on the Carnegie Mellon statistics site: http://lib.stat.cmu.edu/datasets/stanford, and has three columns with the following measures:  
+
+* Age: Age of patient in years at the time of heart transplant in years
+* Status: Survival status (1=dead, 0=alive)
+* Days: Survival time in days after transplant (in days)   
+
+```{r ht_prv, echo = F, include = T}
+hdat <- read.csv('data/heart_transplant.csv',header=T,stringsAsFactors=F)
+knitr::kable(hdat[c(1,2,8,12,16,32),],  caption="Preview: Heart Transplant Data",row.names=F)
+```
+
+This dataset is right censored, because as shown above, we don't exactly how long patients who currently have a (status=0) will survive, or survived.  
+
+Utilizing this dataset, and the *survival* package in R, we generate the Kaplan-Meier estimates, and visualize the survival function, i.e. $S_{KM}(x_{i:n}) = 1 - F_{KM}(x_{i:n})$, with confidence intervals below. Note that the R code utilized is also shown:  
+
+\newpage
+
+##### R Code  
+  
+```{r km_estimate, echo = T, include = T, fig.align='center',fig.height=4}
+km_fit <- survfit(Surv(time = Days, event = Status) ~ 1, data = hdat, 
+                  type = 'kaplan-meier') #only one group of patients
+km_dat <- data.frame(time=km_fit$time,
+                     survival=km_fit$surv,
+                     upper_ci = km_fit$upper, 
+                     lower_ci = km_fit$lower) #model results
+melted_km_dat <- melt(km_dat, id.vars = c('time')) #transform for viz
+ggplot(aes(x=time,y=value, color = variable ,group = variable), data=melted_km_dat) +
+  geom_step(size = 1.25) + theme_bw() + xlab('Time (days)') + 
+  ylab('Survival Function') + 
+  ggtitle('K-M Estimates with 95% Confidence Bounds: Heart Transplant Patients') + 
+  labs(color='Curve')
+```
+  
+
+Visual analysis of the plot here, indicates that the probability of survival for 500 days, after a heart transplant is approximately 42%, with a 95% confidence range of approximately 30-55%, among patients in this data, when this data was collected decades ago. We hope that survival rates have increased significantly since this study was conducted. 
 
 ## 2. Kernel and Related Regression with One Explanatory Variable (40%):
 *Locate a data set suitable for nonparametric regression (usually has nonlinear y-x relationship) in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations. Apply all of the procedures below:*  
