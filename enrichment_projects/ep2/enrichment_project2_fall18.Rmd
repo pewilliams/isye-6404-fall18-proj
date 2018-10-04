@@ -68,7 +68,18 @@ Visual analysis of the plot here, indicates that the probability of survival for
 2) *Local Polynomial Regression,*    
 3) *LOESS,*    
 4) *Smoothing Spline, to the y-x data-fit.*     
-    + Compare fits from the four methods.    
+    + Compare fits from the four methods.   
+```{r km_estimate, echo = T, include = T, fig.align='center',fig.height=4}
+bw <- npregbw(formula=hdat$Status~hdat$Days, tol=.1, ftol=.1)
+# Now take these bandwidths and fit the model and gradients
+model <- npreg(bws = bw, gradients = TRUE)
+summary(model)
+npplot(bws=bw, plot.errors.method="bootstrap")
+points(hdat$Days, hdat$Status, cex=.2, col="red")
+
+plot(NA, xlim = c(min(hdat$Days), max(hdat$Days)), ylim = c(0, 1))
+lines(locpoly(hdat$Days, hdat$Status, bandwidth=2, degree=1), col=3)
+```
 
 ## 3. Cross-Validation With the “Leave-One-Out” Procedure (10%):
 *Compare the above four methods with a leave-one-out cross-validation procedure.*  
