@@ -1,0 +1,9 @@
+#Package installation 
+install.packages('locpol', dependencies=TRUE, repos='http://cran.rstudio.com/')
+
+#If that doesn't work try 
+#https://cran.r-project.org/web/packages/locpol/index.html
+
+#In this link, download the package source file (tar.gz)
+#Extract the package folder to the folder that holds the library of packages
+#and then try doing it. It worked for me, so it may be that there were other packages that needed to be installed as well.
