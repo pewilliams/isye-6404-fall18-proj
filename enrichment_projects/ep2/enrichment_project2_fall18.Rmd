@@ -73,18 +73,57 @@ For this exercise, we located another dataset, that consists of Data give the mo
 
 * Mortality: the mortality rate (deaths per 100,000 people)
 * Education: the average number of years in school
-```{r km_estimate, echo = T, include = T, fig.align='center',fig.height=4}
+
+1) *Kernel Regression,*
+```{r Kernel Regression, echo = T, include = T, fig.align='center',fig.height=4}
 rdat <- read.csv('data/education-and-mortality.csv',header=T,stringsAsFactors=F)
 bw <- npregbw(formula=rdat$Mortality~rdat$Education, tol=.1, ftol=.1)
 # Now take these bandwidths and fit the model and gradients
 model <- npreg(bws = bw, gradients = TRUE)
 summary(model)
-npplot(bws=bw, plot.errors.method="bootstrap")
+npplot(bws=bw, plot.errors.method="bootstrap",col = "blue")
 points(rdat$Education, rdat$Mortality, cex=.2, col="red")
-
-plot(NA, xlim = c(min(rdat$Education), max(rdat$Education)), ylim = c(0, 1))
-lines(locpoly(rdat$Education, rdat$Mortality, bandwidth=2, degree=1), col=3)
 ```
+2) *Local Polynomial Regression,* 
+```{r Local Polynomial Regression, echo = T, include = T, fig.align='center',fig.height=4}
+fit <- locfit(Mortality~lp(Education,deg=4),data=rdat)
+summary(fit)
+crit(fit) <- crit(fit,cov=0.99)
+plot(fit,band='local')
+points(rdat$Education, rdat$Mortality, cex=.2, col="red")
+res <- residuals(fit)
+des <- rdat$Mortality-mean(rdat$Mortality)
+r_square = 1- sum((res)^2/sum((des)^2))
+```
+Comparison for above Kernel Estimators:
+1) the Nadaraya-Watson kernel estimator suffers from  bias, both at the boundaries due to the one-sided neighborhoods and in the interior when the xi’s are not uniformly distributed. The reason is that in local constant modeling more or less the same points are used to estimate the curve near the boundary. 
+2) Local polynomial regression overcomes the above problem by fitting a higher degree polynomial here. What's more, Local polynomial regression also has other advantage such as,independence of the regression design (ﬁxed or random, highly clustered or nearly uniform), and eﬃciency in an asymptotic minimax sense.
+
+Comparison for Kernel Estimators and Nearest neighbor methods:
+1) In general, nearest neighbor and kernel estimators produce similar results.
+For example:
+The loess approach is similar to the Nadaraya-Watson approach in that both are taking linear combinations of the responses $y_i$
+
+2) In terms of bias and variance, the nearest neighbor estimator performs well if the variance decreases more than the squared bias increases.
+For example:
+Suppose that f is continuously differentiable up to second order and that $K(x,x_0) = 0$ if $|x − x_0| > h$ Then
+Loess: $$Bias{f(x_0) = O(h^2)}$$
+Nadaraya-Watson: $$Bias{f(x_0)} = f_0(x_0)\sum_{i}wi(x_i − x_0) + O(h^2),$$
+where $w_i = K_h(x_i,x_0)/\sum_{j}K_h(x_j,x_0)$
+The leading term for the bias of the Nadaraya-Watson estimator is referred to as design bias which is not present for loess estimators.
+In other words, loess performs naturally eliminates design bias, and the resulting estimator is free of bias up to second order.
+
+3) Nearest neighbor methods is better if we have spaces with clustered design points followed by intervals with sparse design points.
+
+Comparison for Kernel Estimators, Nearest neighbor methods and spline regressions:
+
+1) In general, for one input variable and one output variable, smoothing splines can basically do everything which kernel regression can do.
+
+2)While a higher order polynomial will provide a closer fit at any particular point, the loss of parsimony is not the only potential problem of over fitting, unwanted oscillations can appear between data points.Spline functions avoid this pitfall.
+
+3) Kernels however are easier to program, analyze mathematically,extend more straightforwardly to multiple variables, and to combinations of discrete and continuous variables.
+
+4)Splines has faster computational speed and simplicity,as well as the clarity of controlling curvature directly.
 
 ## 3. Cross-Validation With the “Leave-One-Out” Procedure (10%):
 *Compare the above four methods with a leave-one-out cross-validation procedure.*  
