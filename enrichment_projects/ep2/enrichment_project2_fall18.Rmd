@@ -69,16 +69,21 @@ Visual analysis of the plot here, indicates that the probability of survival for
 3) *LOESS,*    
 4) *Smoothing Spline, to the y-x data-fit.*     
     + Compare fits from the four methods.   
+For this exercise, we located another dataset, that consists of Data give the mortality rate and the education level for 58 U.S. cities. It can be found via the following link on the *The Data And Story Library* site:https://dasl.datadescription.com/datafile/education-and-mortality, and has two columns with the following measures:  
+
+* Mortality: the mortality rate (deaths per 100,000 people)
+* Education: the average number of years in school
 ```{r km_estimate, echo = T, include = T, fig.align='center',fig.height=4}
-bw <- npregbw(formula=hdat$Status~hdat$Days, tol=.1, ftol=.1)
+rdat <- read.csv('data/education-and-mortality.csv',header=T,stringsAsFactors=F)
+bw <- npregbw(formula=rdat$Mortality~rdat$Education, tol=.1, ftol=.1)
 # Now take these bandwidths and fit the model and gradients
 model <- npreg(bws = bw, gradients = TRUE)
 summary(model)
 npplot(bws=bw, plot.errors.method="bootstrap")
-points(hdat$Days, hdat$Status, cex=.2, col="red")
+points(rdat$Education, rdat$Mortality, cex=.2, col="red")
 
-plot(NA, xlim = c(min(hdat$Days), max(hdat$Days)), ylim = c(0, 1))
-lines(locpoly(hdat$Days, hdat$Status, bandwidth=2, degree=1), col=3)
+plot(NA, xlim = c(min(rdat$Education), max(rdat$Education)), ylim = c(0, 1))
+lines(locpoly(rdat$Education, rdat$Mortality, bandwidth=2, degree=1), col=3)
 ```
 
 ## 3. Cross-Validation With the “Leave-One-Out” Procedure (10%):
