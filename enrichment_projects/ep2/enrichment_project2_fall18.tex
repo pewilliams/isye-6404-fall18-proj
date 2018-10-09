@@ -1,0 +1,683 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={ISyE 6404 (EP-2): K-M Estimation, Kernel Regression and Spline},
+            pdfauthor={Yuan Gao, Kevin Lee, Akshay Govindaraj; Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang; ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 \textbar{} @gatech.edu},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\usepackage{longtable,booktabs}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{ISyE 6404 (EP-2): K-M Estimation, Kernel Regression and Spline}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Yuan Gao, Kevin Lee, Akshay Govindaraj \\ Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang \\ ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438
+\textbar{} @gatech.edu}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{2018-10-22}
+
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\subsection{1. K-M Estimation (25\%):}\label{k-m-estimation-25}
+
+\emph{Locate a data set with right-censoring (in Type-I Censoring) in
+the field of your interest, e.g., eCommerce, medical study, drug
+development, supply-chain/logistics operations, for applying the K-M
+Estimator to estimate the survival function with pointwise confidence
+intervals.}
+
+For this exercise, we located a dataset, that consists of measures on 69
+different patients who received a heart transplant, taken from the first
+edition of the text \emph{The Statistical Analysis of Failure Time Data}
+by Kalbfleisch and Prentice, Appendix I (230-232), published originally
+in 1980, which can also be found via the following link on the Carnegie
+Mellon statistics site: \url{http://lib.stat.cmu.edu/datasets/stanford},
+and has three columns with the following measures:
+
+\begin{itemize}
+\tightlist
+\item
+  Age: Age of patient in years at the time of heart transplant in years
+\item
+  Status: Survival status (1=dead, 0=alive)
+\item
+  Days: Survival time in days after transplant (in days)
+\end{itemize}
+
+\begin{longtable}[]{@{}rrr@{}}
+\caption{Preview: Heart Transplant Data}\tabularnewline
+\toprule
+Age & Status & Days\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+Age & Status & Days\tabularnewline
+\midrule
+\endhead
+41 & 1 & 5\tabularnewline
+40 & 1 & 16\tabularnewline
+35 & 0 & 39\tabularnewline
+50 & 1 & 53\tabularnewline
+45 & 1 & 68\tabularnewline
+26 & 0 & 180\tabularnewline
+\bottomrule
+\end{longtable}
+
+This dataset is right censored, because as shown above, we don't exactly
+how long patients who currently have a (status=0) will survive, or
+survived.
+
+Utilizing this dataset, and the \emph{survival} package in R, we
+generate the Kaplan-Meier estimates, and visualize the survival
+function, i.e. \(S_{KM}(x_{i:n}) = 1 - F_{KM}(x_{i:n})\), with
+confidence intervals below. Note that the R code utilized is also shown:
+
+\newpage
+
+\subparagraph{R Code}\label{r-code}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{km_fit <-}\StringTok{ }\KeywordTok{survfit}\NormalTok{(}\KeywordTok{Surv}\NormalTok{(}\DataTypeTok{time =}\NormalTok{ Days, }\DataTypeTok{event =}\NormalTok{ Status) }\OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{, }\DataTypeTok{data =}\NormalTok{ hdat, }
+                  \DataTypeTok{type =} \StringTok{'kaplan-meier'}\NormalTok{) }\CommentTok{#only one group of patients}
+\NormalTok{km_dat <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{time=}\NormalTok{km_fit}\OperatorTok{$}\NormalTok{time,}
+                     \DataTypeTok{survival=}\NormalTok{km_fit}\OperatorTok{$}\NormalTok{surv,}
+                     \DataTypeTok{upper_ci =}\NormalTok{ km_fit}\OperatorTok{$}\NormalTok{upper, }
+                     \DataTypeTok{lower_ci =}\NormalTok{ km_fit}\OperatorTok{$}\NormalTok{lower) }\CommentTok{#model results}
+\NormalTok{melted_km_dat <-}\StringTok{ }\KeywordTok{melt}\NormalTok{(km_dat, }\DataTypeTok{id.vars =} \KeywordTok{c}\NormalTok{(}\StringTok{'time'}\NormalTok{)) }\CommentTok{#transform for viz}
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{time,}\DataTypeTok{y=}\NormalTok{value, }\DataTypeTok{color =}\NormalTok{ variable ,}\DataTypeTok{group =}\NormalTok{ variable), }\DataTypeTok{data=}\NormalTok{melted_km_dat) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_step}\NormalTok{(}\DataTypeTok{size =} \FloatTok{1.25}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{theme_bw}\NormalTok{() }\OperatorTok{+}\StringTok{ }\KeywordTok{xlab}\NormalTok{(}\StringTok{'Time (days)'}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{'Survival Function'}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{'K-M Estimates with 95% Confidence Bounds: Heart Transplant Patients'}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{color=}\StringTok{'Curve'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{enrichment_project2_fall18_files/figure-latex/km_estimate-1} \end{center}
+
+Visual analysis of the plot here, indicates that the probability of
+survival for 500 days, after a heart transplant is approximately 42\%,
+with a 95\% confidence range of approximately 30-55\%, among patients in
+this data, when this data was collected decades ago. We hope that
+survival rates have increased significantly since this study was
+conducted.
+
+\subsection{2. Kernel and Related Regression with One Explanatory
+Variable
+(40\%):}\label{kernel-and-related-regression-with-one-explanatory-variable-40}
+
+\emph{Locate a data set suitable for nonparametric regression (usually
+has nonlinear y-x relationship) in the field of your interest, e.g.,
+eCommerce, medical study, drug development, supply-chain/logistics
+operations. Apply all of the procedures below:}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\tightlist
+\item
+  \emph{Kernel Regression,}\\
+\item
+  \emph{Local Polynomial Regression,}\\
+\item
+  \emph{LOESS,}\\
+\item
+  \emph{Smoothing Spline, to the y-x data-fit.}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Compare fits from the four methods.\\
+    For this exercise, we located another dataset, that consists of Data
+    give the mortality rate and the education level for 58 U.S. cities.
+    It can be found via the following link on the \emph{The Data And
+    Story Library}
+    site:\url{https://dasl.datadescription.com/datafile/education-and-mortality},
+    and has two columns with the following measures:
+  \end{itemize}
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  Mortality: the mortality rate (deaths per 100,000 people)
+\item
+  Education: the average number of years in school
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\tightlist
+\item
+  \emph{Kernel Regression,}
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rdat <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{'data/education-and-mortality.csv'}\NormalTok{,}\DataTypeTok{header=}\NormalTok{T,}\DataTypeTok{stringsAsFactors=}\NormalTok{F)}
+\NormalTok{bw <-}\StringTok{ }\KeywordTok{npregbw}\NormalTok{(}\DataTypeTok{formula=}\NormalTok{rdat}\OperatorTok{$}\NormalTok{Mortality}\OperatorTok{~}\NormalTok{rdat}\OperatorTok{$}\NormalTok{Education, }\DataTypeTok{tol=}\NormalTok{.}\DecValTok{1}\NormalTok{, }\DataTypeTok{ftol=}\NormalTok{.}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+Multistart 1 of 1 |
+Multistart 1 of 1 |
+Multistart 1 of 1 |
+Multistart 1 of 1 |
+Multistart 1 of 1 |
+                   
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Now take these bandwidths and fit the model and gradients}
+\NormalTok{model <-}\StringTok{ }\KeywordTok{npreg}\NormalTok{(}\DataTypeTok{bws =}\NormalTok{ bw, }\DataTypeTok{gradients =} \OtherTok{TRUE}\NormalTok{)}
+\KeywordTok{summary}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Regression Data: 58 training points, in 1 variable(s)
+##               rdat$Education
+## Bandwidth(s):      0.4382052
+## 
+## Kernel Regression Estimator: Local-Constant
+## Bandwidth Type: Fixed
+## Residual standard error: 47.22676
+## R-squared: 0.4196534
+## 
+## Continuous Kernel Type: Second-Order Gaussian
+## No. Continuous Explanatory Vars.: 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{npplot}\NormalTok{(}\DataTypeTok{bws=}\NormalTok{bw, }\DataTypeTok{plot.errors.method=}\StringTok{"bootstrap"}\NormalTok{,}\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{points}\NormalTok{(rdat}\OperatorTok{$}\NormalTok{Education, rdat}\OperatorTok{$}\NormalTok{Mortality, }\DataTypeTok{cex=}\NormalTok{.}\DecValTok{2}\NormalTok{, }\DataTypeTok{col=}\StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{enrichment_project2_fall18_files/figure-latex/Kernel Regression-1} \end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  \emph{Local Polynomial Regression,}
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit <-}\StringTok{ }\KeywordTok{locfit}\NormalTok{(Mortality}\OperatorTok{~}\KeywordTok{lp}\NormalTok{(Education,}\DataTypeTok{deg=}\DecValTok{4}\NormalTok{),}\DataTypeTok{data=}\NormalTok{rdat)}
+\KeywordTok{summary}\NormalTok{(fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Estimation type: Local Regression 
+## 
+## Call:
+## locfit(formula = Mortality ~ lp(Education, deg = 4), data = rdat)
+## 
+## Number of data points:  58 
+## Independent variables:  Education 
+## Evaluation structure: Rectangular Tree 
+## Number of evaluation points:  5 
+## Degree of fit:  4 
+## Fitted Degrees of Freedom:  6.982
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{crit}\NormalTok{(fit) <-}\StringTok{ }\KeywordTok{crit}\NormalTok{(fit,}\DataTypeTok{cov=}\FloatTok{0.99}\NormalTok{)}
+\KeywordTok{plot}\NormalTok{(fit,}\DataTypeTok{band=}\StringTok{'local'}\NormalTok{)}
+\KeywordTok{points}\NormalTok{(rdat}\OperatorTok{$}\NormalTok{Education, rdat}\OperatorTok{$}\NormalTok{Mortality, }\DataTypeTok{cex=}\NormalTok{.}\DecValTok{2}\NormalTok{, }\DataTypeTok{col=}\StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{enrichment_project2_fall18_files/figure-latex/Local Polynomial Regression-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{res <-}\StringTok{ }\KeywordTok{residuals}\NormalTok{(fit)}
+\NormalTok{des <-}\StringTok{ }\NormalTok{rdat}\OperatorTok{$}\NormalTok{Mortality}\OperatorTok{-}\KeywordTok{mean}\NormalTok{(rdat}\OperatorTok{$}\NormalTok{Mortality)}
+\NormalTok{r_square =}\StringTok{ }\DecValTok{1}\OperatorTok{-}\StringTok{ }\KeywordTok{sum}\NormalTok{((res)}\OperatorTok{^}\DecValTok{2}\OperatorTok{/}\KeywordTok{sum}\NormalTok{((des)}\OperatorTok{^}\DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  \emph{LOESS,}
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Making our variables easy to use in modeling}
+\NormalTok{Mortality=rdat[,}\DecValTok{1}\NormalTok{]}
+\NormalTok{Education=rdat[,}\DecValTok{2}\NormalTok{]}
+
+\CommentTok{#packages to help create colors for plotting smoothing lines}
+\KeywordTok{library}\NormalTok{(RColorBrewer)}
+\KeywordTok{library}\NormalTok{(sp)}
+
+\CommentTok{#Install "stats" package to be able to perform loess and spline data smoothing.}
+\CommentTok{#install.packages('stats', dependencies=TRUE, repos='http://cran.rstudio.com/')}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Loess models, with varying spans, with degree=1. When
+interpreting the summary
+results}\label{loess-models-with-varying-spans-with-degree1.-when-interpreting-the-summary-results}
+
+\section{for the loess models, we will notice that increasing span will
+decrease the
+SSR}\label{for-the-loess-models-we-will-notice-that-increasing-span-will-decrease-the-ssr}
+
+\section{but the curve of the model will become more jagged, making it
+so that the curve may
+not}\label{but-the-curve-of-the-model-will-become-more-jagged-making-it-so-that-the-curve-may-not}
+
+\section{be the best representation. Loess is mostly a visual tool to
+see curves for non-linear curves
+through}\label{be-the-best-representation.-loess-is-mostly-a-visual-tool-to-see-curves-for-non-linear-curves-through}
+
+\section{the use of data to form the line rather than a specified
+mathematical
+model.}\label{the-use-of-data-to-form-the-line-rather-than-a-specified-mathematical-model.}
+
+\section{Loess is based purely on the span and degree of the polynomial
+for the potential loess
+model.}\label{loess-is-based-purely-on-the-span-and-degree-of-the-polynomial-for-the-potential-loess-model.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{loess.model.}\DecValTok{1}\NormalTok{=}\KeywordTok{loess}\NormalTok{(Mortality}\OperatorTok{~}\NormalTok{Education,}\DataTypeTok{span=}\NormalTok{.}\DecValTok{25}\NormalTok{,}\DataTypeTok{degree=}\DecValTok{1}\NormalTok{)}
+\NormalTok{loess.model.}\DecValTok{2}\NormalTok{=}\KeywordTok{loess}\NormalTok{(Mortality}\OperatorTok{~}\NormalTok{Education,}\DataTypeTok{span=}\NormalTok{.}\DecValTok{5}\NormalTok{,}\DataTypeTok{degree=}\DecValTok{1}\NormalTok{)}
+\NormalTok{loess.model.}\DecValTok{3}\NormalTok{=}\KeywordTok{loess}\NormalTok{(Mortality}\OperatorTok{~}\NormalTok{Education,}\DataTypeTok{span=}\NormalTok{.}\DecValTok{7}\NormalTok{,}\DataTypeTok{degree=}\DecValTok{1}\NormalTok{)}
+\NormalTok{loess.model.}\DecValTok{4}\NormalTok{=}\KeywordTok{loess}\NormalTok{(Mortality}\OperatorTok{~}\NormalTok{Education,}\DataTypeTok{span=}\NormalTok{.}\DecValTok{9}\NormalTok{,}\DataTypeTok{degree=}\DecValTok{1}\NormalTok{)}
+\KeywordTok{summary}\NormalTok{(loess.model.}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:
+## loess(formula = Mortality ~ Education, span = 0.25, degree = 1)
+## 
+## Number of Observations: 58 
+## Equivalent Number of Parameters: 7.85 
+## Residual Standard Error: 49.26 
+## Trace of smoother matrix: 9.33  (exact)
+## 
+## Control settings:
+##   span     :  0.25 
+##   degree   :  1 
+##   family   :  gaussian
+##   surface  :  interpolate      cell = 0.2
+##   normalize:  TRUE
+##  parametric:  FALSE
+## drop.square:  FALSE
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(loess.model.}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:
+## loess(formula = Mortality ~ Education, span = 0.5, degree = 1)
+## 
+## Number of Observations: 58 
+## Equivalent Number of Parameters: 3.85 
+## Residual Standard Error: 49.02 
+## Trace of smoother matrix: 4.51  (exact)
+## 
+## Control settings:
+##   span     :  0.5 
+##   degree   :  1 
+##   family   :  gaussian
+##   surface  :  interpolate      cell = 0.2
+##   normalize:  TRUE
+##  parametric:  FALSE
+## drop.square:  FALSE
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(loess.model.}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:
+## loess(formula = Mortality ~ Education, span = 0.7, degree = 1)
+## 
+## Number of Observations: 58 
+## Equivalent Number of Parameters: 3.12 
+## Residual Standard Error: 48.58 
+## Trace of smoother matrix: 3.61  (exact)
+## 
+## Control settings:
+##   span     :  0.7 
+##   degree   :  1 
+##   family   :  gaussian
+##   surface  :  interpolate      cell = 0.2
+##   normalize:  TRUE
+##  parametric:  FALSE
+## drop.square:  FALSE
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(loess.model.}\DecValTok{4}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:
+## loess(formula = Mortality ~ Education, span = 0.9, degree = 1)
+## 
+## Number of Observations: 58 
+## Equivalent Number of Parameters: 2.49 
+## Residual Standard Error: 48.21 
+## Trace of smoother matrix: 2.8  (exact)
+## 
+## Control settings:
+##   span     :  0.9 
+##   degree   :  1 
+##   family   :  gaussian
+##   surface  :  interpolate      cell = 0.2
+##   normalize:  TRUE
+##  parametric:  FALSE
+## drop.square:  FALSE
+\end{verbatim}
+
+We will now plot the data points from our our mortality data,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(Mortality}\OperatorTok{~}\NormalTok{Education)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{enrichment_project2_fall18_files/figure-latex/PlotofMortality-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#The loess.smooth() function allows us to make fitted lines for the smoothed lines with varying spans}
+\CommentTok{#We will plot various functions to be able to see the effect of span on the smoothing line}
+\NormalTok{loessfit1=}\KeywordTok{loess.smooth}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Education,}\DataTypeTok{y=}\NormalTok{Mortality,}\DataTypeTok{span=}\NormalTok{.}\DecValTok{25}\NormalTok{,}\DataTypeTok{degree=}\DecValTok{1}\NormalTok{)}
+\NormalTok{loessfit2=}\KeywordTok{loess.smooth}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Education,}\DataTypeTok{y=}\NormalTok{Mortality,}\DataTypeTok{span=}\NormalTok{.}\DecValTok{4}\NormalTok{,}\DataTypeTok{degree=}\DecValTok{1}\NormalTok{)}
+\NormalTok{loessfit3=}\KeywordTok{loess.smooth}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Education,}\DataTypeTok{y=}\NormalTok{Mortality,}\DataTypeTok{span=}\NormalTok{.}\DecValTok{6}\NormalTok{,}\DataTypeTok{degree=}\DecValTok{1}\NormalTok{)}
+\NormalTok{loessfit4=}\KeywordTok{loess.smooth}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Education,}\DataTypeTok{y=}\NormalTok{Mortality,}\DataTypeTok{span=}\NormalTok{.}\DecValTok{9}\NormalTok{,}\DataTypeTok{degree=}\DecValTok{1}\NormalTok{)}
+
+\CommentTok{#Recall our plot with the mortality and education data. *****Needs legend*****}
+\CommentTok{#We will now display the loess fits of varying span onto the plot to see the possible smoothing lines we can make with the loess #function.}
+\KeywordTok{plot}\NormalTok{(Mortality}\OperatorTok{~}\NormalTok{Education)}
+\KeywordTok{lines}\NormalTok{(loessfit1}\OperatorTok{$}\NormalTok{x,loessfit1}\OperatorTok{$}\NormalTok{y,}\DataTypeTok{col=}\StringTok{"blue"}\NormalTok{, }\DataTypeTok{lwd=}\DecValTok{2}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(loessfit2}\OperatorTok{$}\NormalTok{x,loessfit2}\OperatorTok{$}\NormalTok{y,}\DataTypeTok{col=}\StringTok{"green"}\NormalTok{, }\DataTypeTok{lwd=}\DecValTok{2}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(loessfit3}\OperatorTok{$}\NormalTok{x,loessfit3}\OperatorTok{$}\NormalTok{y,}\DataTypeTok{col=}\StringTok{"yellow"}\NormalTok{, }\DataTypeTok{lwd=}\DecValTok{2}\NormalTok{)}
+\KeywordTok{lines}\NormalTok{(loessfit4}\OperatorTok{$}\NormalTok{x,loessfit4}\OperatorTok{$}\NormalTok{y,}\DataTypeTok{col=}\StringTok{"red"}\NormalTok{, }\DataTypeTok{lwd=}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{enrichment_project2_fall18_files/figure-latex/Loess Smoothing-1} \end{center}
+
+If we use 0.25 span for the case that it is the least jagged curve fit,
+while still holding some obvious grouping of values visually. One thing
+to keep note of is that the loess fit will be useful in visually
+displaying the relationship between the two variables mortality and
+education, but since our sample size is not particularly large, as loess
+fitting requires quite a large sample size to utilize effectively.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Smoothing Spline Plot}
+\KeywordTok{plot}\NormalTok{(Mortality}\OperatorTok{~}\NormalTok{Education)}
+\NormalTok{spline.mortality=}\KeywordTok{smooth.spline}\NormalTok{(Education,Mortality)}
+\KeywordTok{lines}\NormalTok{(spline.mortality, }\DataTypeTok{col=}\StringTok{"purple"}\NormalTok{, }\DataTypeTok{lwd=}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{enrichment_project2_fall18_files/figure-latex/Smoothing Spline-1} \end{center}
+
+We can see that using a smoothing spline gives us a relatively linear
+line with small bumps along it.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  \emph{Smoothing Spline, to the y-x data-fit.}
+\end{enumerate}
+
+\begin{verbatim}
+#Smoothing Spline Plot using the smooth.spline() function in {stats} package
+plot(Mortality~Education)
+spline.mortality=smooth.spline(Education,Mortality)
+lines(spline.mortality, col="purple", lwd=2)
+\end{verbatim}
+
+We can see that using a smoothing spline gives us a relatively linear
+line with small bumps along it.
+
+Comparison for above Kernel Estimators: 1) the Nadaraya-Watson kernel
+estimator suffers from bias, both at the boundaries due to the one-sided
+neighborhoods and in the interior when the xi's are not uniformly
+distributed. The reason is that in local constant modeling more or less
+the same points are used to estimate the curve near the boundary. 2)
+Local polynomial regression overcomes the above problem by fitting a
+higher degree polynomial here. What's more, Local polynomial regression
+also has other advantage such as,independence of the regression design
+(ﬁxed or random, highly clustered or nearly uniform), and eﬃciency in an
+asymptotic minimax sense.
+
+Comparison for Kernel Estimators and Nearest neighbor methods: 1) In
+general, nearest neighbor and kernel estimators produce similar results.
+For example: The loess approach is similar to the Nadaraya-Watson
+approach in that both are taking linear combinations of the responses
+\(y_i\)
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{1}
+\item
+  In terms of bias and variance, the nearest neighbor estimator performs
+  well if the variance decreases more than the squared bias increases.
+  For example: Suppose that f is continuously differentiable up to
+  second order and that \(K(x,x_0) = 0\) if \(|x − x_0| > h\) Then
+  Loess: \[Bias{f(x_0) = O(h^2)}\] Nadaraya-Watson:
+  \[Bias{f(x_0)} = f_0(x_0)\sum_{i}wi(x_i − x_0) + O(h^2),\] where
+  \(w_i = K_h(x_i,x_0)/\sum_{j}K_h(x_j,x_0)\) The leading term for the
+  bias of the Nadaraya-Watson estimator is referred to as design bias
+  which is not present for loess estimators. In other words, loess
+  performs naturally eliminates design bias, and the resulting estimator
+  is free of bias up to second order.
+\item
+  Nearest neighbor methods is better if we have spaces with clustered
+  design points followed by intervals with sparse design points.
+\end{enumerate}
+
+Comparison for Kernel Estimators, Nearest neighbor methods and spline
+regressions:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\tightlist
+\item
+  In general, for one input variable and one output variable, smoothing
+  splines can basically do everything which kernel regression can do.
+\end{enumerate}
+
+2)While a higher order polynomial will provide a closer fit at any
+particular point, the loss of parsimony is not the only potential
+problem of over fitting, unwanted oscillations can appear between data
+points.Spline functions avoid this pitfall.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Kernels however are easier to program, analyze mathematically,extend
+  more straightforwardly to multiple variables, and to combinations of
+  discrete and continuous variables.
+\end{enumerate}
+
+4)Splines has faster computational speed and simplicity,as well as the
+clarity of controlling curvature directly.
+
+\subsection{\texorpdfstring{3. Cross-Validation With the
+``Leave-One-Out'' Procedure
+(10\%):}{3. Cross-Validation With the Leave-One-Out Procedure (10\%):}}\label{cross-validation-with-the-leave-one-out-procedure-10}
+
+\emph{Compare the above four methods with a leave-one-out
+cross-validation procedure.}
+
+\subsection{4. Resampling Procedures: Bootstrap and Jackknife
+(25\%):}\label{resampling-procedures-bootstrap-and-jackknife-25}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\tightlist
+\item
+  \emph{Select an input \(x_0\) in the {[}min(x-data),
+  max(x-data){]}.}\\
+\item
+  \emph{Use all four regression models built in Task \#2 to make
+  point-predictions of \(Y\) at \(x_0\).}\\
+\item
+  \emph{Use both bootstrap (\(B = 1000\)) and jackknife resampling
+  procedures to find a 90\% pointwise confidence interval (CI) for the
+  point-prediction. If the resampled distribution of the
+  point-prediction is symmetric, use 5\% in each tail to find the
+  CI-bounds. If the distribution is not symmetric, use the HPD-interval
+  idea to find the CI-bound. Compare the results from four regression
+  methods.}
+\end{enumerate}
+
+
+\end{document}

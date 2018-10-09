@@ -6,19 +6,39 @@ author:
 - ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu
 date: '2018-10-22'
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: 2
   word_document:
     toc: yes
-    toc_depth: '2'
+    toc_depth: 2
+  includes:
+    in_header: latex/title_page.tex
 ---
+
+## Workload Distribution  
+Workload and description of tasks and the distribution of work (%) by team member for this project:  
+
+\begin{center}
+\begin{tabular}{ |l|l| } 
+\hline
+Team Member & Task Description  \\
+\hline
+Yuan Gao & TBD \\ 
+Kevin Lee & TDB  \\ 
+Akshay Govindaraj & TBD  \\ 
+Yijun (Emma) Wan & TBD  \\ 
+Peter Williams & TBD \\ 
+Ruixuan Zhang & TBD \\ 
+\hline
+\end{tabular}
+\end{center}
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(reshape2))
 suppressPackageStartupMessages(library(survival))
+suppressPackageStartupMessages(library(np))
+suppressPackageStartupMessages(library(locfit))
+suppressPackageStartupMessages(library(stats))
 ```
 
 ## 1. K-M Estimation (25%):
@@ -96,7 +116,7 @@ des <- rdat$Mortality-mean(rdat$Mortality)
 r_square = 1- sum((res)^2/sum((des)^2))
 ```
 3) *LOESS,*    
-``` {r Package Installation, echo = T, include = T, fig.align='center',fig.height=4}
+``` {r PackageInstallation, echo = T, include = T, fig.align='center',fig.height=4}
 #Making our variables easy to use in modeling
 Mortality=rdat[,1]
 Education=rdat[,2]
@@ -106,7 +126,7 @@ library(RColorBrewer)
 library(sp)
 
 #Install "stats" package to be able to perform loess and spline data smoothing.
-install.packages('stats', dependencies=TRUE, repos='http://cran.rstudio.com/')
+#install.packages('stats', dependencies=TRUE, repos='http://cran.rstudio.com/')
 ```
 #Loess models, with varying spans, with degree=1. When interpreting the summary results
 #for the loess models, we will notice that increasing span will decrease the SSR
@@ -114,7 +134,7 @@ install.packages('stats', dependencies=TRUE, repos='http://cran.rstudio.com/')
 #be the best representation. Loess is mostly a visual tool to see curves for non-linear curves through
 #the use of data to form the line rather than a specified mathematical model. 
 #Loess is based purely on the span and degree of the polynomial for the potential loess model.
-```{r Loess Models, echo = T, include = T, fig.align='center',fig.height=4}
+```{r LoessModels, echo = T, include = T, fig.align='center',fig.height=4}
 loess.model.1=loess(Mortality~Education,span=.25,degree=1)
 loess.model.2=loess(Mortality~Education,span=.5,degree=1)
 loess.model.3=loess(Mortality~Education,span=.7,degree=1)
@@ -125,7 +145,7 @@ summary(loess.model.3)
 summary(loess.model.4)
 ```
 We will now plot the data points from our our mortality data, 
-```{r Plot of Mortality, echo = T, include = T, fig.align='center',fig.height=4}
+```{r PlotofMortality, echo = T, include = T, fig.align='center',fig.height=4}
 plot(Mortality~Education)
 ```
 
@@ -143,7 +163,7 @@ plot(Mortality~Education)
 lines(loessfit1$x,loessfit1$y,col="blue", lwd=2)
 lines(loessfit2$x,loessfit2$y,col="green", lwd=2)
 lines(loessfit3$x,loessfit3$y,col="yellow", lwd=2)
-lines(loessfit4$x,loessfit5$y,col="red", lwd=2)
+lines(loessfit4$x,loessfit4$y,col="red", lwd=2)
 ```
 If we use 0.25 span for the case that it is the least jagged curve fit, while still holding some obvious grouping of values visually.
 One thing to keep note of is that the loess fit will be useful in visually displaying the relationship between
@@ -160,14 +180,13 @@ We can see that using a smoothing spline gives us a relatively linear line with 
 
 4) *Smoothing Spline, to the y-x data-fit.* 
 
-```
+```{r smooth_spline, include = T, echo = F}
 #Smoothing Spline Plot using the smooth.spline() function in {stats} package
 plot(Mortality~Education)
 spline.mortality=smooth.spline(Education,Mortality)
 lines(spline.mortality, col="purple", lwd=2)
 ```
 We can see that using a smoothing spline gives us a relatively linear line with small bumps along it. 
-
 
 Comparison for above Kernel Estimators:
 1) the Nadaraya-Watson kernel estimator suffers from  bias, both at the boundaries due to the one-sided neighborhoods and in the interior when the xi’s are not uniformly distributed. The reason is that in local constant modeling more or less the same points are used to estimate the curve near the boundary. 
