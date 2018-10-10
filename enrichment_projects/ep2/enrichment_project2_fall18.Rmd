@@ -6,11 +6,11 @@ author:
 - ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu
 date: '2018-10-22'
 output:
-  word_document:
+  pdf_document:
     toc: yes
-    toc_depth: 2
+    toc_depth: '2'
   includes:
-    in_header: latex/title_page.tex
+    before_body: latex/title_page.tex
 ---
 
 ## Workload Distribution  
@@ -50,6 +50,10 @@ For this exercise, we located a dataset, that consists of measures on 69 differe
 * Status: Survival status (1=dead, 0=alive)
 * Days: Survival time in days after transplant (in days)   
 
+\newpage
+
+A preview of this dataset is provided here:
+
 ```{r ht_prv, echo = F, include = T}
 hdat <- read.csv('data/heart_transplant.csv',header=T,stringsAsFactors=F)
 knitr::kable(hdat[c(1,2,8,12,16,32),],  caption="Preview: Heart Transplant Data",row.names=F)
@@ -57,13 +61,9 @@ knitr::kable(hdat[c(1,2,8,12,16,32),],  caption="Preview: Heart Transplant Data"
 
 This dataset is right censored, because as shown above, we don't exactly how long patients who currently have a (status=0) will survive, or survived.  
 
-Utilizing this dataset, and the *survival* package in R, we generate the Kaplan-Meier estimates, and visualize the survival function, i.e. $S_{KM}(x_{i:n}) = 1 - F_{KM}(x_{i:n})$, with confidence intervals below. Note that the R code utilized is also shown:  
-
-\newpage
-
-##### R Code  
+Utilizing this dataset, and the *survival* package in R, we generate the Kaplan-Meier estimates, and visualize the survival function, i.e. $S_{KM}(x_{i:n}) = 1 - F_{KM}(x_{i:n})$, with confidence intervals below:  
   
-```{r km_estimate, echo = T, include = T, fig.align='center',fig.height=4}
+```{r km_estimate, echo = F, include = T, fig.align='center',fig.height=4}
 km_fit <- survfit(Surv(time = Days, event = Status) ~ 1, data = hdat, 
                   type = 'kaplan-meier') #only one group of patients
 km_dat <- data.frame(time=km_fit$time,
@@ -77,7 +77,6 @@ ggplot(aes(x=time,y=value, color = variable ,group = variable), data=melted_km_d
   ggtitle('K-M Estimates with 95% Confidence Bounds: Heart Transplant Patients') + 
   labs(color='Curve')
 ```
-  
 
 Visual analysis of the plot here, indicates that the probability of survival for 500 days, after a heart transplant is approximately 42%, with a 95% confidence range of approximately 30-55%, among patients in this data, when this data was collected decades ago. We hope that survival rates have increased significantly since this study was conducted. 
 
@@ -95,7 +94,7 @@ For this exercise, we located another dataset, that consists of Data give the mo
 * Education: the average number of years in school
 
 1) *Kernel Regression,*
-```{r Kernel Regression, echo = T, include = T, fig.align='center',fig.height=4}
+```{r KernelRegression, echo = T, include = T, fig.align='center',fig.height=4}
 rdat <- read.csv('data/education-and-mortality.csv',header=T,stringsAsFactors=F)
 bw <- npregbw(formula=rdat$Mortality~rdat$Education, tol=.1, ftol=.1)
 # Now take these bandwidths and fit the model and gradients
@@ -105,7 +104,7 @@ npplot(bws=bw, plot.errors.method="bootstrap",col = "blue")
 points(rdat$Education, rdat$Mortality, cex=.2, col="red")
 ```
 2) *Local Polynomial Regression,* 
-```{r Local Polynomial Regression, echo = T, include = T, fig.align='center',fig.height=4}
+```{r LocalPolynomialRegression, echo = T, include = T, fig.align='center',fig.height=4}
 fit <- locfit(Mortality~lp(Education,deg=4),data=rdat)
 summary(fit)
 crit(fit) <- crit(fit,cov=0.99)
@@ -115,7 +114,8 @@ res <- residuals(fit)
 des <- rdat$Mortality-mean(rdat$Mortality)
 r_square = 1- sum((res)^2/sum((des)^2))
 ```
-3) *LOESS,*    
+3) *LOESS,*   
+
 ``` {r PackageInstallation, echo = T, include = T, fig.align='center',fig.height=4}
 #Making our variables easy to use in modeling
 Mortality=rdat[,1]
@@ -124,16 +124,10 @@ Education=rdat[,2]
 #packages to help create colors for plotting smoothing lines
 library(RColorBrewer)
 library(sp)
-
-#Install "stats" package to be able to perform loess and spline data smoothing.
-#install.packages('stats', dependencies=TRUE, repos='http://cran.rstudio.com/')
 ```
-#Loess models, with varying spans, with degree=1. When interpreting the summary results
-#for the loess models, we will notice that increasing span will decrease the SSR
-#but the curve of the model will become more jagged, making it so that the curve may not
-#be the best representation. Loess is mostly a visual tool to see curves for non-linear curves through
-#the use of data to form the line rather than a specified mathematical model. 
-#Loess is based purely on the span and degree of the polynomial for the potential loess model.
+
+Loess models, with varying spans, with degree=1. When interpreting the summary results for the loess models, we will notice that increasing span will decrease the SSR but the curve of the model will become more jagged, making it so that the curve may not be the best representation. Loess is mostly a visual tool to see curves for non-linear curves through the use of data to form the line rather than a specified mathematical model. Loess is based purely on the span and degree of the polynomial for the potential loess model.  
+
 ```{r LoessModels, echo = T, include = T, fig.align='center',fig.height=4}
 loess.model.1=loess(Mortality~Education,span=.25,degree=1)
 loess.model.2=loess(Mortality~Education,span=.5,degree=1)
@@ -144,12 +138,13 @@ summary(loess.model.2)
 summary(loess.model.3)
 summary(loess.model.4)
 ```
-We will now plot the data points from our our mortality data, 
+We will now plot the data points from our our mortality data,   
+
 ```{r PlotofMortality, echo = T, include = T, fig.align='center',fig.height=4}
 plot(Mortality~Education)
 ```
 
-``` {r Loess Smoothing, echo = T, include = T, fig.align='center',fig.height=4}
+```{r Loess Smoothing, echo = T, include = T, fig.align='center',fig.height=4}
 #The loess.smooth() function allows us to make fitted lines for the smoothed lines with varying spans
 #We will plot various functions to be able to see the effect of span on the smoothing line
 loessfit1=loess.smooth(x=Education,y=Mortality,span=.25,degree=1)
@@ -190,7 +185,7 @@ We can see that using a smoothing spline gives us a relatively linear line with 
 
 Comparison for above Kernel Estimators:
 1) the Nadaraya-Watson kernel estimator suffers from  bias, both at the boundaries due to the one-sided neighborhoods and in the interior when the xi’s are not uniformly distributed. The reason is that in local constant modeling more or less the same points are used to estimate the curve near the boundary. 
-2) Local polynomial regression overcomes the above problem by fitting a higher degree polynomial here. What's more, Local polynomial regression also has other advantage such as,independence of the regression design (ﬁxed or random, highly clustered or nearly uniform), and eﬃciency in an asymptotic minimax sense.
+2) Local polynomial regression overcomes the above problem by fitting a higher degree polynomial here. What's more, Local polynomial regression also has other advantage such as,independence of the regression design (fixed or random, highly clustered or nearly uniform), and efficiency in an asymptotic minimax sense.
 
 Comparison for Kernel Estimators and Nearest neighbor methods:
 1) In general, nearest neighbor and kernel estimators produce similar results.
@@ -199,10 +194,11 @@ The loess approach is similar to the Nadaraya-Watson approach in that both are t
 
 2) In terms of bias and variance, the nearest neighbor estimator performs well if the variance decreases more than the squared bias increases.
 For example:
-Suppose that f is continuously differentiable up to second order and that $K(x,x_0) = 0$ if $|x − x_0| > h$ Then
-Loess: $$Bias{f(x_0) = O(h^2)}$$
-Nadaraya-Watson: $$Bias{f(x_0)} = f_0(x_0)\sum_{i}wi(x_i − x_0) + O(h^2),$$
-where $w_i = K_h(x_i,x_0)/\sum_{j}K_h(x_j,x_0)$
+Suppose that f is continuously differentiable up to second order and that $K(x,x_0) = 0$ if $|x - x_0| > h$ Then
+Loess: $Bias{f(x_0) = O(h^2)}$  
+Nadaraya-Watson: $Bias{f(x_0)} = f_0(x_0)\sum_{i}wi(x_i - x_0) + O(h^2)$,  
+where $w_i = K_h(x_i,x_0)/\sum_{j}K_h(x_j,x_0)$  
+
 The leading term for the bias of the Nadaraya-Watson estimator is referred to as design bias which is not present for loess estimators.
 In other words, loess performs naturally eliminates design bias, and the resulting estimator is free of bias up to second order.
 
