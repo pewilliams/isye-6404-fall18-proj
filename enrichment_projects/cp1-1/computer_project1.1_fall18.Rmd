@@ -52,24 +52,40 @@ Ruixuan Zhang & TBD \\
 ```{r data, echo = T, include = T, fig.align='center',fig.height=4}
 library("survival")
 library("survminer")
-data("stanford2")
-head(stanford2)
+data("kidney")
+head(kidney)
 ```
-For this exercise, I located a dataset in the survival package, that describes the Stanford Heart Transplant data in a different format. It has five variables:
+For this exercise, I located a dataset in the survival package, that describes the recurrence times to infection, at the point of insertion of the catheter, for kidney patients using portable dialysis equipment. Catheters may be removed for reasons other than infection, in which case the observation is censored. Each patient has exactly 2 observations. It has seven variables:
 
-1) id:	ID number
-2)time:	survival or censoring time
-3)status:	censoring status
+1)patient: id
+
+2)time:	time
+
+3)status:	event status
+
 4)age:	in years
-5)t5:	T5 mismatch score 
 
-First, I compute the univariate Cox analyses for the two variables; then we’ll fit multivariate cox analyses using two variables to describe how the factors jointly impact on survival.
+5)sex:	1=male, 2=female
+
+6)disease:	disease type (0=GN, 1=AN, 2=PKD, 3=Other)
+
+7)frail:	frailty estimate from original paper
+
+First, I compute the univariate Cox analyses for the four variables; then we’ll fit multivariate cox analyses using two variables to describe how the factors jointly impact on survival.
 ```{r PH-regression_un, echo = T, include = T, fig.align='center',fig.height=4}
-res.cox <- coxph(Surv(time, status) ~ age, data = stanford2)
+res.cox <- coxph(Surv(time, status) ~ age, data = kidney)
 res.cox
 res.cox.zph <- cox.zph(res.cox)
 res.cox.zph
-res.cox <- coxph(Surv(time, status) ~ t5, data = stanford2)
+res.cox <- coxph(Surv(time, status) ~ sex, data = kidney)
+res.cox
+res.cox.zph <- cox.zph(res.cox)
+res.cox.zph
+res.cox <- coxph(Surv(time, status) ~ disease, data = kidney)
+res.cox
+res.cox.zph <- cox.zph(res.cox)
+res.cox.zph
+res.cox <- coxph(Surv(time, status) ~ frail, data = kidney)
 res.cox
 res.cox.zph <- cox.zph(res.cox)
 res.cox.zph
@@ -79,12 +95,12 @@ The syntax above gives us the method to get the survival function of any given v
 
 Following is the Cox regression results Analysis:
 
-1) Statistical significance, z, gives the Wald statistic value,evaluates whether the beta coefficient of a given variable is statistically significantly different from 0. From the output above, we can conclude that the variable age has highly statistically significant coefficients, but t5 doesn't. So, following we just focus on age.
+1) Statistical significance, z, gives the Wald statistic value,evaluates whether the beta coefficient of a given variable is statistically significantly different from 0. From the output above, we can conclude that the variable sex and frail have highly statistically significant coefficients, but age and disease don't. So, following we focus on the sex and frail.
 
 2) The regression coefficients are positive signs meaning that the hazard (risk of death) is higher, and thus the prognosis worse, for subjects with higher values of that variable.
 
 3) Hazard ratios are the exponentiated coefficients (exp(coef)) which give the effect size of the variable age. 
-So, it gives us the predict about the hazard ratio for any given variables. for example, the variable age whose p_value is less than 0.0061, with a hazard ratio HR = 1.03.
+So, it gives us the predict about the hazard ratio for any given variables. The variable sex is encoded as a numeric vector. 1: male, 2: female. The beta coefficient for sex = -0.838 indicates that females have lower risk of kidney (lower survival rates) than males, in these data.
 
 4) Confidence intervals of the hazard ratios is shown by the upper and lower 95% confidence intervals for the hazard ratio (exp(coef)).
 
@@ -93,9 +109,9 @@ So, it gives us the predict about the hazard ratio for any given variables. for 
 6) cox.zph() function shows the data are sufficiently consistent with the assumption of proportional hazards with respect to each of the variables separately as well as globally.
 ```{r PH-regression_plot, echo = T, include = T, fig.align='center',fig.height=4}
 library(survminer)
-res.cox <- coxph(Surv(time, status) ~ age, data =  stanford2)
-ggsurvplot(survfit(res.cox), data = stanford2, palette = "#2E9FDF",ggtheme = theme_minimal())
-new_dat = data.frame(age = c(35))
+res.cox <- coxph(Surv(time, status) ~ sex+frail, data =  kidney)
+ggsurvplot(survfit(res.cox), data = kidney, palette = "#2E9FDF",ggtheme = theme_minimal())
+new_dat = data.frame(sex = c(1), frail = c(2))
 survfit(res.cox, newdata = new_dat)
 ```
 The picture is to visualize the predicted survival proportion at any given point for a particular risk group. Besides, the syntax above is to make predict about the survival interval of any given new data.
