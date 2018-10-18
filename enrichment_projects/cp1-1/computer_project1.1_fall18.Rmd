@@ -48,6 +48,58 @@ Ruixuan Zhang & TBD \\
 
 #### Tasks
 1) Locate a data set in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, to practice the PH-regression technique. Note that we need to predict both hazard-rate and the survival function at an input x0.
+
+```{r data, echo = T, include = T, fig.align='center',fig.height=4}
+library("survival")
+library("survminer")
+data("stanford2")
+head(stanford2)
+```
+For this exercise, I located a dataset in the survival package, that describes the Stanford Heart Transplant data in a different format. It has five variables:
+
+1) id:	ID number
+2)time:	survival or censoring time
+3)status:	censoring status
+4)age:	in years
+5)t5:	T5 mismatch score 
+
+First, I compute the univariate Cox analyses for the two variables; then we’ll fit multivariate cox analyses using two variables to describe how the factors jointly impact on survival.
+```{r PH-regression_un, echo = T, include = T, fig.align='center',fig.height=4}
+res.cox <- coxph(Surv(time, status) ~ age, data = stanford2)
+res.cox
+res.cox.zph <- cox.zph(res.cox)
+res.cox.zph
+res.cox <- coxph(Surv(time, status) ~ t5, data = stanford2)
+res.cox
+res.cox.zph <- cox.zph(res.cox)
+res.cox.zph
+```
+
+The syntax above gives us the method to get the survival function of any given variables.The output above shows the regression beta coefficients, the effect sizes (given as hazard ratios) and statistical significance for each of the variables in relation to overall survival.
+
+Following is the Cox regression results Analysis:
+
+1) Statistical significance, z, gives the Wald statistic value,evaluates whether the beta coefficient of a given variable is statistically significantly different from 0. From the output above, we can conclude that the variable age has highly statistically significant coefficients, but t5 doesn't. So, following we just focus on age.
+
+2) The regression coefficients are positive signs meaning that the hazard (risk of death) is higher, and thus the prognosis worse, for subjects with higher values of that variable.
+
+3) Hazard ratios are the exponentiated coefficients (exp(coef)) which give the effect size of the variable age. 
+So, it gives us the predict about the hazard ratio for any given variables. for example, the variable age whose p_value is less than 0.0061, with a hazard ratio HR = 1.03.
+
+4) Confidence intervals of the hazard ratios is shown by the upper and lower 95% confidence intervals for the hazard ratio (exp(coef)).
+
+5) Global statistical significance p-values for three alternative tests for overall significance of the model: The likelihood-ratio test, Wald test, and score logrank statistics. These three methods are asymptotically equivalent.
+
+6) cox.zph() function shows the data are sufficiently consistent with the assumption of proportional hazards with respect to each of the variables separately as well as globally.
+```{r PH-regression_plot, echo = T, include = T, fig.align='center',fig.height=4}
+library(survminer)
+res.cox <- coxph(Surv(time, status) ~ age, data =  stanford2)
+ggsurvplot(survfit(res.cox), data = stanford2, palette = "#2E9FDF",ggtheme = theme_minimal())
+new_dat = data.frame(age = c(35))
+survfit(res.cox, newdata = new_dat)
+```
+The picture is to visualize the predicted survival proportion at any given point for a particular risk group. Besides, the syntax above is to make predict about the survival interval of any given new data.
+
 2) Follow Task #4 in EP-2 to construct a 90% pointwise confidence interval based only the bootstrap method.
 3) Skim through the CP-1 references given in Files> Projects> CP-1> Reference> directory to write a two-page report for summarizing the work there.
 4) Outline steps for implementing one of the studied procedure addressed in the reference. You DO NOT need to implement them, but describe how to do it.
