@@ -1,0 +1,56 @@
+---
+title: | 
+  | \vspace{5cm} \LARGE{CP-1 Part 1: ISyE 6404}
+  
+author:
+- Yuan Gao, Kevin Lee, Akshay Govindaraj
+- Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang
+- ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu
+
+date: "`r Sys.Date()`"
+output:
+   pdf_document:
+      fig_caption: true
+      number_sections: false
+---
+
+\newpage
+\tableofcontents
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Workload Distribution
+
+Below is a description of tasks and the distribution of work (%) by team member for this project:  
+
+\begin{center}
+\begin{tabular}{ |l|l| } 
+\hline
+Team Member & Task Description  \\
+\hline
+Yuan Gao & TBD \\ 
+Kevin Lee & TBD  \\ 
+Akshay Govindaraj & TBD  \\ 
+Yijun (Emma) Wan & TBD  \\ 
+Peter Williams & TBD  \\ 
+Ruixuan Zhang & TBD \\ 
+\hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+## PH-Regression Data-Fit
+
+#### Dataset intro
+
+#### Tasks
+1) Locate a data set in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, to practice the PH-regression technique. Note that we need to predict both hazard-rate and the survival function at an input x0.
+2) Follow Task #4 in EP-2 to construct a 90% pointwise confidence interval based only the bootstrap method.
+3) Skim through the CP-1 references given in Files> Projects> CP-1> Reference> directory to write a two-page report for summarizing the work there.
+4) Outline steps for implementing one of the studied procedure addressed in the reference. You DO NOT need to implement them, but describe how to do it.
+5) Discuss whether the results getting in (2) and (4) might be different (in what way).
+
+

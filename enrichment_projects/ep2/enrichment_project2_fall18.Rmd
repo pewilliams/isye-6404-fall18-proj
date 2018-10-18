@@ -1,5 +1,5 @@
 ---
-title: 'ISyE 6404 (EP-2): K-M Estimation, Kernel Regression and Spline'
+title: "(EP-2): K-M Estimation, Kernel Regression and Spline"
 author:
 - Yuan Gao, Kevin Lee, Akshay Govindaraj
 - Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang
@@ -9,9 +9,19 @@ output:
   pdf_document:
     toc: yes
     toc_depth: '2'
-  includes:
-    before_body: latex/title_page.tex
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(reshape2))
+suppressPackageStartupMessages(library(survival))
+suppressPackageStartupMessages(library(np))
+suppressPackageStartupMessages(library(locfit))
+suppressPackageStartupMessages(library(stats))
+```
+
+\newpage
 
 ## Workload Distribution  
 Workload and description of tasks and the distribution of work (%) by team member for this project:  
@@ -31,15 +41,7 @@ Ruixuan Zhang & TBD \\
 \end{tabular}
 \end{center}
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(reshape2))
-suppressPackageStartupMessages(library(survival))
-suppressPackageStartupMessages(library(np))
-suppressPackageStartupMessages(library(locfit))
-suppressPackageStartupMessages(library(stats))
-```
+\newpage
 
 ## 1. K-M Estimation (25%):
 *Locate a data set with right-censoring (in Type-I Censoring) in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the K-M Estimator to estimate the survival function with pointwise confidence intervals.*  
