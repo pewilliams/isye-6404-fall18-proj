@@ -117,6 +117,49 @@ survfit(res.cox, newdata = new_dat)
 The picture is to visualize the predicted survival proportion at any given point for a particular risk group. Besides, the syntax above is to make predict about the survival interval of any given new data.
 
 2) Follow Task #4 in EP-2 to construct a 90% pointwise confidence interval based only the bootstrap method.
+
+```{r ph_bootstrap, include = F, echo = F}
+#need to use bootstrap method to come up with prediction interval
+#for both the hazard rate, and survival function at an arbitrary point
+#function takes a data.frame and returns a bootstrapped sample
+create_bs_dataframe <- function(df){
+  df_nobs <- nrow(df)
+  bs_df <- df[sample(x = 1:nrow(df),size = nrow(df),replace = T),]
+  return(bs_df)
+}
+#### Run bootstrap replications
+B <- 1000
+
+#ignore frail measure - only consider sex for bootstrap stuff
+# gender_ph <- coxph(Surv(time, status) ~ sex, data =  kidney)
+# new_dat = data.frame(time = 2, sex = 2) #female
+# survfit(gender_ph, newdata = new_dat)
+# baseline <- basehaz(gender_ph)
+# # Draw baseline hazard (that's male)
+# plot(baseline$time, baseline$hazard, type='l',main="Hazard rates") 
+# # Draw female hazard
+# lines(baseline$time, exp(gender_ph$coefficients)*baseline$hazard, col="blue") 
+
+bs_res <- do.call('rbind',
+                  lapply(1:B, function(a){
+                    bs_df <- create_bs_dataframe(df = kidney) 
+                    bs_ph <- coxph(Surv(time, status) ~ sex, data =  bs_df)
+                    return(data.frame(beta= bs_ph$coefficients, rep_n = a))
+                  }))
+
+#percentile method of the beta estimate (gender impact against baseline)
+#not symmetric
+
+#ggplot(bs_res, aes(x = bs_res$beta)) + geom_density() + theme_minimal()
+
+#quantile method - but not appropriate for non symmetric bootstrap results
+beta_upper <- quantile(bs_res$beta,probs = 0.95)
+beta_lower <- quantile(bs_res$beta, probs = 0.05)
+#also need to consider interval for bootstrap prediction (at fixed point in time??)
+
+```
+
+
 3) Skim through the CP-1 references given in Files> Projects> CP-1> Reference> directory to write a two-page report for summarizing the work there.
 
 Ref-1.0 and Ref-1.1 introduces the semiparametric regression, which means the combination of parametric(may be mis specified and inconsistent) and nonparametric models. So, there are many assumptions should be satisfied or verified. Although some assumptions are difficult to verify, they are generally satisfied for well-behaved estimators. But, they make Andrews’ MINPIN, the semiparametric estimator has the same asymptotic distribution as the idealized estimator obtained by replacing the nonparametric estimate with the true function, not easy to implement. 
