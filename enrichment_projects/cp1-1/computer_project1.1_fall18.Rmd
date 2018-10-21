@@ -1,17 +1,25 @@
 ---
-title: | 
-  | \vspace{5cm} \LARGE{CP-1 Part 1: ISyE 6404}
-  
+title: |
+  | \vspace{5cm} \LARGE{ISyE 6404 CP.1: Proportional Hazards Regression}
 author:
-- Yuan Gao, Kevin Lee, Akshay Govindaraj
+- Yuan Gao, Kevin Lee, Akshay Govindaraj, 
 - Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang
-- ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu
 
-date: "`r Sys.Date()`"
+date: "`r paste0('Date: ',Sys.Date())`"
 output:
    pdf_document:
       fig_caption: true
       number_sections: false
+fontfamily: mathpazo
+fontsize: 11pt
+header-includes:
+  - \usepackage{titling}
+  - \pretitle{\begin{flushleft}}
+  - \posttitle{\end{flushleft}}
+  - \preauthor{\begin{flushleft}}
+  - \postauthor{\end{flushleft}}
+  - \predate{\begin{flushleft}}
+  - \postdate{\end{flushleft}}
 ---
 
 \newpage
@@ -34,7 +42,7 @@ Yuan Gao & TBD \\
 Kevin Lee & TBD  \\ 
 Akshay Govindaraj & TBD  \\ 
 Yijun (Emma) Wan & TBD  \\ 
-Peter Williams & TBD  \\ 
+Peter Williams & Code Compilation, Document Formatting, Visualization  \\ 
 Ruixuan Zhang & TBD \\ 
 \hline
 \end{tabular}
@@ -42,14 +50,12 @@ Ruixuan Zhang & TBD \\
 
 \newpage
 
-## PH-Regression Data-Fit
+# Proportional Hazards Regression Tasks
 
-#### Dataset intro
+## 1. Data Description & PH-regression
+*Task: Locate a data set in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, to practice the PH-regression technique. Note that we need to predict both hazard-rate and the survival function at an input x0.*
 
-#### Tasks
-1) Locate a data set in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, to practice the PH-regression technique. Note that we need to predict both hazard-rate and the survival function at an input x0.
-
-```{r data, echo = T, include = T, fig.align='center',fig.height=4}
+```{r data, echo = T, include = F, fig.align='center',fig.height=4}
 suppressPackageStartupMessages( library(survival))
 suppressPackageStartupMessages( library(survminer))
 suppressPackageStartupMessages( library(boot))
@@ -75,7 +81,7 @@ For this exercise, I located a dataset in the survival package, that describes t
 
 First, I compute the univariate Cox analyses for the four variables; then we’ll fit multivariate cox analyses using two variables to describe how the factors jointly impact on survival.  
 
-```{r PH-regression_un, echo = T, include = T, fig.align='center',fig.height=4}
+```{r PHregression_un, echo = F, include = T, fig.align='center',fig.height=4}
 #extract name of var, estimate, and p-value
 #helper to extract model summaries in tabular format
 get_cox_ph_results <- function(coxph_res){
@@ -89,19 +95,15 @@ get_cox_ph_results <- function(coxph_res){
 }
 
 variables <- c('age','sex','disease','frail')
-results <- do.call('rbind',lapply(variables, function(x){
-  model_formula <- as.formula(paste0("Surv(time, status) ~ ",x))
-  model_res <- coxph(formula = model_formula, data = kidney)
-  return(get_cox_ph_results(model_res))
-}))
 
-knitr::kable(results, caption = 'Model Results - Add a Better Title')
+results <- do.call('rbind',
+          lapply(variables, function(x){
+                  model_formula <- as.formula(paste0("Surv(time, status) ~ ",x))
+          model_res <- coxph(formula = model_formula, data = kidney)
+          return(get_cox_ph_results(model_res))
+          }))
 
-#old code example
-# res.cox.age <- coxph(formula = as.formula("Surv(time, status) ~ age"), data = kidney)
-# res.cox.age
-# res.cox.zph.age <- cox.zph(res.cox.age)
-# res.cox.zph.age
+knitr::kable(results, caption = 'Model Results - Add a Better Title',digits = 2)
 ```
 
 The syntax above gives us the method to get the survival function of any given variables.The output above shows the regression beta coefficients, the effect sizes (given as hazard ratios) and statistical significance for each of the variables in relation to overall survival.
@@ -124,13 +126,18 @@ So, it gives us the predict about the hazard ratio for any given variables. The 
 ```{r PH-regression_plot, echo = T, include = T, fig.align='center',fig.height=4}
 res.cox <- coxph(Surv(time, status) ~ sex+frail, data =  kidney)
 ggsurvplot(survfit(res.cox), data = kidney, palette = "#2E9FDF",ggtheme = theme_minimal())
-new_dat = data.frame(sex = c(1), frail = c(2))
-survfit(res.cox, newdata = new_dat)
 ```  
   
 The picture is to visualize the predicted survival proportion at any given point for a particular risk group. Besides, the syntax above is to make predict about the survival interval of any given new data.
 
-2) Follow Task #4 in EP-2 to construct a 90% pointwise confidence interval based only the bootstrap method.
+```{r ph_reg_point_predict, echo = F, include = F}
+new_dat <- data.frame(sex = c(1), frail = c(2))
+pref_df <- survfit(res.cox, newdata = new_dat)
+```
+
+## 2. Pointwise Confidence Interval - Bootstrap Method
+
+*Task: Follow #4 in EP-2 to construct a 90% pointwise confidence interval based on the bootstrap method.*
 
 ```{r ph_bootstrap, include = F, echo = F}
 # must pass indices argument so that bootstrap can randomly choose - in this case row index
@@ -151,11 +158,11 @@ bs_res <- boot(kidney, bs_fun, R=2000)
 
 bs_ci <- boot.ci(bs_res, conf = 0.95, var.t0 = NULL, type = 'perc')
 print(bs_ci)
-
 ```
 
+## 3. Reference | Literature Review  
 
-3) Skim through the CP-1 references given in Files> Projects> CP-1> Reference> directory to write a two-page report for summarizing the work there.
+*Task: Skim through the CP-1 references given in Files> Projects> CP-1> Reference> directory to write a two-page report for summarizing the work there.*
 
 Ref-1.0 and Ref-1.1 introduces the semiparametric regression, which means the combination of parametric(may be mis specified and inconsistent) and nonparametric models. So, there are many assumptions should be satisfied or verified. Although some assumptions are difficult to verify, they are generally satisfied for well-behaved estimators. But, they make Andrews’ MINPIN, the semiparametric estimator has the same asymptotic distribution as the idealized estimator obtained by replacing the nonparametric estimate with the true function, not easy to implement. Semi-parametric regression is typically used in cases where a nonparametric model may not perform well enough or where a parametric model error distribution is unknown.
 Semiparametric regression owns three popular methods: 1) partially linear, 2) index and 3) varying coefficient models.
@@ -179,8 +186,9 @@ The article implement a two-stage stepwise selection approach, an approach based
 Reference 5.1 shows using machine learning to do survival analysis. Because there are always some censored data which can be effectively handled using survival analysis techniques.
 Although above references developed traditional statistical approaches to overcome this censoring issue. In addition, many machine learning algorithms are adapted to effectively handle survival data and tackle other challenging problems that arise in real world data.  It provides a comprehensive and structured review of the representative statistical methods along with the machine learning techniques used in survival analysis and provide a detailed taxonomy of the existing methods. One can perform survival trees, neural networks, bayesian methods (as discussed prior), support vector machines, boosting, and other such advanced machine learning techniques. 
 
+## 4. Implementation: Reference Procedure  
 
-4) Outline steps for implementing one of the studied procedure addressed in the reference. You DO NOT need to implement them, but describe how to do it.
+*Task: Outline steps for implementing one of the studied procedure addressed in the reference. You DO NOT need to implement them, but describe how to do it.*
 
 A method of survival analysis provided in the references was the accelerated failure time (AFT) model. This is a parametric alternative to the Cox Proportional Hazards model, which is originally semi-parametric. As the AFT model is parametric, certain assumptions must first be met. The first thing to understand about the model is that the primary differences lies with these assumptions. Keep in mind that in an AFT model, the survival time will "contract" or "stretch" as a function of the model's predictor variables (slightly different interpretaion compared to Cox PH). This stems from the idea that in AFT models the predictor variables have a multiplicative event on the log of survival time. The big difference (and assumption) for an AFT model is that it assumes an underlying distribution for its survival times. 
 
@@ -194,10 +202,43 @@ In interpreting the coefficients, one must note that the equation is based on a 
 
 This allows us to calaculate our acceleration factor. For example, if we have a positive acceleration factor, for example 2, then we would be able to say that the variable increases our survival time by a factor of 2. If we have a negative value of 2 as our acceleration factor, the survival time would be "accelerated" or shortened by a factor of 2. Keep in mind that the predictor variables' effects are indeed multiplicative. 
 
-
-
 Note: As with most comparisons between parametric and non(or semi-)parametric methods, parametric models have the advantage in terms of ease of interpretability (the goal of a parametric model is to find a certain parameter that helps build a model representative of the data. This also leads to a disadvantage: parametric models require a foundational distribution of the data with which to base the model off of, which may not always be feasible. A violation of assumptions in a parametric model would then lead us to potentially sub-optimal results. 
 
-5) Discuss whether the results getting in (2) and (4) might be different (in what way).
+## 5. Result Review  
+
+*Task: Discuss whether the results getting in (2) and (4) might be different (in what way).*
+
+## Code Appendix
+
+#### PH Regression Model Fitting Code
+
+The following code demonstrates our approach to fit each potential co-variate independently to estimate its impact in context of the survival function, utilized in task 1:  
+
+```{r PHregression_code_appendix, echo = T, include = T}
+#extract name of var, estimate, and p-value
+#helper to extract model summaries in tabular format
+get_cox_ph_results <- function(coxph_res){
+  zph <- cox.zph(coxph_res)
+  res_table <- data.frame(covariate = names(coxph_res$coefficients), 
+            beta = as.numeric(coxph_res$coefficients),
+            pvalue = 
+             as.numeric(summary(coxph_res)$coefficients[colnames(summary(coxph_res)$coefficients)=="Pr(>|z|)"]),
+            rho = as.numeric(zph$table[,1])[!is.na(zph$table[,1])] )
+  return(res_table)
+}
+
+variables <- c('age','sex','disease','frail')
+
+results <- do.call('rbind',
+          lapply(variables, function(x){
+                  model_formula <- as.formula(paste0("Surv(time, status) ~ ",x))
+          model_res <- coxph(formula = model_formula, data = kidney)
+          return(get_cox_ph_results(model_res))
+          }))
+```
+
+*Questions?*  
+
+*Contact: ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu*
 
 
