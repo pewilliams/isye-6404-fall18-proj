@@ -42,7 +42,7 @@ Yuan Gao & TBD \\
 Kevin Lee & TBD  \\ 
 Akshay Govindaraj & TBD  \\ 
 Yijun (Emma) Wan & TBD  \\ 
-Peter Williams & Code Compilation, Document Formatting, Visualization  \\ 
+Peter Williams & Code Compilation, R Debugging, Latex Formatting, Visualization  \\ 
 Ruixuan Zhang & TBD \\ 
 \hline
 \end{tabular}
