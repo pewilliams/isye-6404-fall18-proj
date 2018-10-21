@@ -3,18 +3,18 @@ library("survminer")
 library("boot")
 data("kidney")
 
+# must pass indices argument so that bootstrap can randomly choose
+# overly specified model tends to error out due to estimation error
+# in this case only using age as a covariate - feel free to add others # with care
 
-bs.fun1 <- function(kidney_df){
-  disease = cbind(with(kidney_df, model.matrix(~ disease + 0)))
-  df = as.data.frame(disease)
-  res.cox <- coxph(Surv(kidney_df$time, kidney_df$status) ~ kidney_df$age + kidney_df$sex + kidney_df$frail + df$diseasePKD + df$diseaseGN + df$diseaseAN )
-  return(res.cox$coefficients["kidney$age"])
+#bootstrap function
+bs_fun <- function(data, indices){
+	bs_dat <- data[indices,]
+  	res.cox <- coxph(Surv(time, status) ~ age , data = bs_dat)
+  	return(as.numeric(res.cox$coefficients["age"]))
 }
 
-bs1 <- boot(data = kidney, statistic=bs.fun1, R=2000)
-bs.ci1 <- boot.ci(bs1, conf=c(0.9))
-
-print(bs.ci1$normal)
-print(bs.ci1$basic)
-print(bs.ci1$percentl)
-print(bs.ci1$bca)
+bs_res <- boot(kidney, bs_fun, R=2000)
+#plot(bs_res) #symmetric - can use percentile approach
+# type options include: "norm", "basic", "perc", "stud"
+bs_ci <- boot.ci(bs_res, conf = 0.95, var.t0 = NULL, type = 'perc')
