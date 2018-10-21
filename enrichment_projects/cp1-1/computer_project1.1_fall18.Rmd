@@ -123,16 +123,20 @@ So, it gives us the predict about the hazard ratio for any given variables. The 
 
 6) cox.zph() function shows the data are sufficiently consistent with the assumption of proportional hazards with respect to each of the variables separately as well as globally.  
 
-```{r PH-regression_plot, echo = T, include = T, fig.align='center',fig.height=4}
-res.cox <- coxph(Surv(time, status) ~ sex+frail, data =  kidney)
-ggsurvplot(survfit(res.cox), data = kidney, palette = "#2E9FDF",ggtheme = theme_minimal())
+```{r PH-regression_plot, echo = F, include = T, fig.align='center',fig.height=4}
+res.cox <- survfit(Surv(time, status) ~ sex, data =  kidney)
+ggsurvplot(res.cox, data = kidney,conf.int = TRUE, risk.table = TRUE, risk.table.col = 'strata',ggtheme = theme_minimal(),risk.table.height = 0.28) + ggtitle('Predicted Survival Probability') 
 ```  
   
-The picture is to visualize the predicted survival proportion at any given point for a particular risk group. Besides, the syntax above is to make predict about the survival interval of any given new data.
+The picture is to visualize the predicted survival proportion at any given point for a particular risk group. 
 
-```{r ph_reg_point_predict, echo = F, include = F}
+Besides, the syntax above is to make predict about the survival interval of any given new data.
+
+```{r ph_reg_point_predict, echo = T, include = T}
+res.cox <- coxph(Surv(time, status) ~ sex + frail, data =  kidney)
 new_dat <- data.frame(sex = c(1), frail = c(2))
 pref_df <- survfit(res.cox, newdata = new_dat)
+pref_df
 ```
 
 ## 2. Pointwise Confidence Interval - Bootstrap Method
@@ -235,6 +239,29 @@ results <- do.call('rbind',
           model_res <- coxph(formula = model_formula, data = kidney)
           return(get_cox_ph_results(model_res))
           }))
+```
+
+#### Bootstrap Procedure 
+
+The following outlines our bootstrap procedure for section 1.3, utilizing functionality from the *boot* package in R: 
+
+```{r ph_bootstrap_ca, include = T, echo = T}
+# must pass indices argument so that bootstrap can randomly choose - in this case row index
+# in this case only using age as a covariate below
+suppressPackageStartupMessages( library(boot))
+#bootstrap function - age coefficient only here
+bs_fun <- function(data, indices){
+	bs_dat <- data[indices,]
+  	res.cox <- coxph(Surv(time, status) ~ age , data = bs_dat)
+  	return(as.numeric(res.cox$coefficients["age"]))
+}
+
+bs_res <- boot(kidney, bs_fun, R=2000) # R = number of replications
+
+#plot(bs_res) #if symmetric - ok to use percentile approach
+# type options include: "norm", "basic", "perc", "stud"
+
+bs_ci <- boot.ci(bs_res, conf = 0.95, var.t0 = NULL, type = 'perc')
 ```
 
 *Questions?*  
