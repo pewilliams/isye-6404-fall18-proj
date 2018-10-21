@@ -76,22 +76,32 @@ For this exercise, I located a dataset in the survival package, that describes t
 First, I compute the univariate Cox analyses for the four variables; then we’ll fit multivariate cox analyses using two variables to describe how the factors jointly impact on survival.  
 
 ```{r PH-regression_un, echo = T, include = T, fig.align='center',fig.height=4}
-res.cox <- coxph(Surv(time, status) ~ age, data = kidney)
-res.cox
-res.cox.zph <- cox.zph(res.cox)
-res.cox.zph
-res.cox <- coxph(Surv(time, status) ~ sex, data = kidney)
-res.cox
-res.cox.zph <- cox.zph(res.cox)
-res.cox.zph
-res.cox <- coxph(Surv(time, status) ~ disease, data = kidney)
-res.cox
-res.cox.zph <- cox.zph(res.cox)
-res.cox.zph
-res.cox <- coxph(Surv(time, status) ~ frail, data = kidney)
-res.cox
-res.cox.zph <- cox.zph(res.cox)
-res.cox.zph
+#extract name of var, estimate, and p-value
+#helper to extract model summaries in tabular format
+get_cox_ph_results <- function(coxph_res){
+  zph <- cox.zph(coxph_res)
+  res_table <- data.frame(covariate = names(coxph_res$coefficients), 
+            beta = as.numeric(coxph_res$coefficients),
+            pvalue = 
+             as.numeric(summary(coxph_res)$coefficients[colnames(summary(coxph_res)$coefficients)=="Pr(>|z|)"]),
+            rho = as.numeric(zph$table[,1])[!is.na(zph$table[,1])] )
+  return(res_table)
+}
+
+variables <- c('age','sex','disease','frail')
+results <- do.call('rbind',lapply(variables, function(x){
+  model_formula <- as.formula(paste0("Surv(time, status) ~ ",x))
+  model_res <- coxph(formula = model_formula, data = kidney)
+  return(get_cox_ph_results(model_res))
+}))
+
+knitr::kable(results, caption = 'Model Results - Add a Better Title')
+
+#old code example
+# res.cox.age <- coxph(formula = as.formula("Surv(time, status) ~ age"), data = kidney)
+# res.cox.age
+# res.cox.zph.age <- cox.zph(res.cox.age)
+# res.cox.zph.age
 ```
 
 The syntax above gives us the method to get the survival function of any given variables.The output above shows the regression beta coefficients, the effect sizes (given as hazard ratios) and statistical significance for each of the variables in relation to overall survival.
@@ -109,14 +119,15 @@ So, it gives us the predict about the hazard ratio for any given variables. The 
 
 5) Global statistical significance p-values for three alternative tests for overall significance of the model: The likelihood-ratio test, Wald test, and score logrank statistics. These three methods are asymptotically equivalent.
 
-6) cox.zph() function shows the data are sufficiently consistent with the assumption of proportional hazards with respect to each of the variables separately as well as globally.
-```{r PH-regression_plot, echo = T, include = T, fig.align='center',fig.height=4}
+6) cox.zph() function shows the data are sufficiently consistent with the assumption of proportional hazards with respect to each of the variables separately as well as globally.  
 
+```{r PH-regression_plot, echo = T, include = T, fig.align='center',fig.height=4}
 res.cox <- coxph(Surv(time, status) ~ sex+frail, data =  kidney)
 ggsurvplot(survfit(res.cox), data = kidney, palette = "#2E9FDF",ggtheme = theme_minimal())
 new_dat = data.frame(sex = c(1), frail = c(2))
 survfit(res.cox, newdata = new_dat)
-```
+```  
+  
 The picture is to visualize the predicted survival proportion at any given point for a particular risk group. Besides, the syntax above is to make predict about the survival interval of any given new data.
 
 2) Follow Task #4 in EP-2 to construct a 90% pointwise confidence interval based only the bootstrap method.
@@ -135,7 +146,7 @@ bs_fun <- function(data, indices){
 
 bs_res <- boot(kidney, bs_fun, R=2000)
 
-#plot(bs_res) #symmetric - can use percentile approach
+#plot(bs_res) #if symmetric - can use percentile approach
 # type options include: "norm", "basic", "perc", "stud"
 
 bs_ci <- boot.ci(bs_res, conf = 0.95, var.t0 = NULL, type = 'perc')
