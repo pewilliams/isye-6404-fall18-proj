@@ -1,6 +1,7 @@
 
 library("survival")
 library("survminer")
+library("boot")
 data("kidney")
 
 disease = cbind(with(kidney, model.matrix(~ disease + 0)))
