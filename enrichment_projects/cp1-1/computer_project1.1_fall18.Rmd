@@ -241,11 +241,11 @@ Step-2:
 As we can see from the simplified AFT model equation, AFT models (parametric as they are) are analogous to generalized linear regression models in the sense that the results of the model can be interpreted similarly to how a typical regression can be. 
 In interpreting the coefficients, one must note that the equation is based on a logarithm of time, so once we get the values of the B coefficients, we must rearrange the equation. $$\hat{\gamma} = exp(\hat{\alpha})$$
 This allows us to calculate our acceleration factor. For example, if we have a positive acceleration factor, for example 2, then we would be able to say that the variable increases our survival time by a factor of 2. If we have a negative value of 2 as our acceleration factor, the survival time would be "accelerated" or shortened by a factor of 2. Keep in mind that the predictor variables' effects are indeed multiplicative. 
-Based on the preset distribution and acceleration factor, it is possible to compute the full likelihood:
+If use the MLE method to estimate the parameters, based on the preset distribution and acceleration factor, it is feasible to compute the full likelihood:
 $$L(\beta,\sigma) = \prod\limits_{i=1}^n[\frac{1}{\sigma}f_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})]^{\delta_i}S_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})^{1-\delta_i}$$where $\delta_i$ is the indicator to show that whether data is censored or not, if an observation is right-censored, the value of $\delta_i$ should be 0, otherwise it should be 1. Specifically, the likelihood is full rather than partial (different from Cox PH regression).
 Let $\epsilon_i= \frac {logt_{i}-x^{\mathrm{ T }}\beta}{\sigma}$,thus, the log-likelihood become:
 $$l(\beta,\sigma)= \sum\limits_{i=1}^{n}[-\delta_{i}log\sigma+\delta_{i}logf_{0}(\epsilon_i)+(1-\delta_{i})logS_{0}(\epsilon_i)]$$
-where $S_{0}(\epsilon_i)$ is called “baseline survival function” and $f_{0}(\epsilon_i)$ is the corresponding probability density function. Here, $S_{1}(t)=S_{0}({\gamma}t)$.
+where $S_{0}(\epsilon_i)$ is called “baseline survival function” and $f_{0}(\epsilon_i)$ is the corresponding probability density function. Usually, they are the survival function and PDF of log-logistic. What’s more, $S_{1}(t)=S_{0}(\hat{\gamma}t)= S_{0}(e^\hat{\alpha}t)$.
 By differentiating the log-likelihood function, we can maximize the log-likelihood and estimate the coefficients $\beta$ and the scale parameter $log\sigma$.
 
 
@@ -257,6 +257,7 @@ In R, it is simple to create an AFT model for survival analysis. Similarly to ho
 
 
 Note: As with most comparisons between parametric and non(or semi-)parametric methods, parametric models have the advantage in terms of ease of interpretability (the goal of a parametric model is to find a certain parameter that helps build a model representative of the data. This also leads to a disadvantage: parametric models require a foundational distribution of the data with which to base the model off of, which may not always be feasible. A violation of assumptions in a parametric model would then lead us to potentially sub-optimal results.
+
 
 
 ## 5. Result Review  
