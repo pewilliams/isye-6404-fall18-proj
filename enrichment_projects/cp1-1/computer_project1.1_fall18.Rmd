@@ -154,28 +154,30 @@ The data set used is the same as the previous part. We need to add boot library
 #bootstrap function - age coefficient only here
 bs_fun <- function(data, indices){
 	bs_dat <- data[indices,]
-  	res.cox <- coxph(Surv(time, status) ~ age , data = bs_dat)
+  	res.cox <- coxph(Surv(time, status) ~ age + sex + disease + frail , data = bs_dat)
   	return(as.numeric(res.cox$coefficients["age"]))
 }
 
-bs_res <- boot(kidney, bs_fun, R=2000)
+bs_res <- suppressWarnings(boot(kidney, bs_fun, R=2000))
 
 #plot(bs_res) #if symmetric - can use percentile approach
 # type options include: "norm", "basic", "perc", "stud"
 
-bs_ci <- boot.ci(bs_res, conf = 0.95, var.t0 = NULL, type = 'perc')
+bs_ci <- suppressWarnings(boot.ci(bs_res, conf = 0.90, var.t0 = NULL, type = 'perc'))
 print(bs_ci)
+
+plot(bs_res)
 ```
 
 
 The above function gives the results only for age as a hazard variable. The results for the rest of the variables are as follows:
 
-sex : (-3.253, -1.622)
-age : (-0.0089, 0.0291)
+sex : (-3.296, -1.567)
+age : (-0.0087, 0.0284)
 DiseaseGN : (-0.5297, 0.8909)
 DiseaseAN : (0.0379, 1.4394)
-DiseasePKD : (-3.772, -0.69)
-frail: (1.433, 2,666)
+DiseasePKD : (-3.953, -0.821)
+frail: (1.453, 2,672)
 
 There are 2 significant hazard variables sex and frail.
 
