@@ -38,7 +38,7 @@ Below is a description of tasks and the distribution of work (%) by team member 
 \hline
 Team Member & Task Description  \\
 \hline
-Yuan Gao & TBD \\ 
+Yuan Gao & Data Description & PH-regression, Reference | Literature Review \\ 
 Kevin Lee & TBD  \\ 
 Akshay Govindaraj & Bootstrap for computing 90% Confidence Interval  \\ 
 Yijun (Emma) Wan & TBD  \\ 
