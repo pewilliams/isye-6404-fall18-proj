@@ -189,7 +189,6 @@ Conclusions:
 
 4) It is unclear as to which disease is more dangerous as a hazard. The values seems to suggest that DiseaseAN is the most dangerous but it is hard to conclude when the lower bound is very close to zero (0.0379).
 
-We can clearly observe that sex is a hazard varialbe by plotting their survival graphs individually.
 
 
 ## 3. Reference | Literature Review  
