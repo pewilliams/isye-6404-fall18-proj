@@ -143,6 +143,9 @@ pref_df
 
 *Task: Follow #4 in EP-2 to construct a 90% pointwise confidence interval based on the bootstrap method.*
 
+The data set used is the same as the previous part. We need to add boot library
+
+
 ```{r ph_bootstrap, include = F, echo = F}
 # must pass indices argument so that bootstrap can randomly choose - in this case row index
 # overly specified model tends to error out due to estimation error
@@ -163,6 +166,31 @@ bs_res <- boot(kidney, bs_fun, R=2000)
 bs_ci <- boot.ci(bs_res, conf = 0.95, var.t0 = NULL, type = 'perc')
 print(bs_ci)
 ```
+
+
+The above function gives the results only for age as a hazard variable. The results for the rest of the variables are as follows:
+
+sex : (-3.253, -1.622)
+age : (-0.0089, 0.0291)
+DiseaseGN : (-0.5297, 0.8909)
+DiseaseAN : (0.0379, 1.4394)
+DiseasePKD : (-3.772, -0.69)
+frail: (1.433, 2,666)
+
+There are 2 significant hazard variables sex and frail.
+
+Conclusions:
+
+1) In the PH regression, hazard variables are generally the ones which do not changes with time. Age will change with time and is therefore not an appropriate hazard variable.
+
+2) We get the value of the hazard coefficient between (-3.253 and -1.622). Since 1 is for men it can be concluded that men are at a higher risk than women.
+
+3) Frail is the most significant hazard variable. This variable is an estimate of fraility and it makes sense that the coefficient is postive.
+
+4) It is unclear as to which disease is more dangerous as a hazard. The values seems to suggest that DiseaseAN is the most dangerous but it is hard to conclude when the lower bound is very close to zero (0.0379).
+
+We can clearly observe that sex is a hazard varialbe by plotting their survival graphs individually.
+
 
 ## 3. Reference | Literature Review  
 
@@ -263,6 +291,7 @@ bs_res <- boot(kidney, bs_fun, R=2000) # R = number of replications
 
 bs_ci <- boot.ci(bs_res, conf = 0.95, var.t0 = NULL, type = 'perc')
 ```
+
 
 *Questions?*  
 
