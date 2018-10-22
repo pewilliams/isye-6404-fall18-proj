@@ -40,7 +40,7 @@ Team Member & Task Description  \\
 \hline
 Yuan Gao & TBD \\ 
 Kevin Lee & TBD  \\ 
-Akshay Govindaraj & TBD  \\ 
+Akshay Govindaraj & Bootstrap for computing 90% Confidence Interval  \\ 
 Yijun (Emma) Wan & TBD  \\ 
 Peter Williams & Code Compilation, R Debugging, Latex Formatting, Visualization  \\ 
 Ruixuan Zhang & TBD \\ 
