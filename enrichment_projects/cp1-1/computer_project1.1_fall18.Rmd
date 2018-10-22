@@ -232,12 +232,10 @@ Although above references developed traditional statistical approaches to overco
 A method of survival analysis provided in the references was the accelerated failure time (AFT) model. This is a parametric alternative to the Cox Proportional Hazards model, which is originally semi-parametric. 
 Several steps below show how to implement the regression based on AFT model.
 
-
 Step-1:
 As the AFT model is parametric, certain assumptions must first be met. The big difference (assumption) for an AFT model is that it assumes an underlying distribution for its survival times, while PH regression does not.
 The general equation for an accelerated failure time model is $$log(T) = \beta_0 + \beta_{1}X_{1} + ... + \beta_{p}X_{p} + \epsilon\sigma$$ where T is the survival time, the $\beta$ values are coefficients of each predictor's effect on the log(T) (since survival times are always positive). The sigma term in the model equation is a scale parameter, which depends upon the shape of the underlying distribution, and the error term is assumed to be independent and identically distributed (as well as independent of the X-values). Notice that in an AFT model, the survival time will "contract" or "stretch" as a function of the model's predictor variables (slightly different interpretation compared to Cox PH). This stems from the idea that in AFT models the predictor variables have a multiplicative event on the log of survival time.
 As it acts as a parametric alternative to the Cox PH regression model, the AFT model also commonly employs the Weibull and Exponential distributions, though the typical distribution used is the log-logistic distribution. 
-
 
 Step-2:
 As we can see from the simplified AFT model equation, AFT models (parametric as they are) are analogous to generalized linear regression models in the sense that the results of the model can be interpreted similarly to how a typical regression can be. 
@@ -250,21 +248,26 @@ $$l(\beta,\sigma)= \sum\limits_{i=1}^{n}[-\delta_{i}log\sigma+\delta_{i}logf_{0}
 where $S_{0}(\epsilon_i)$ is called “baseline survival function” and $f_{0}(\epsilon_i)$ is the corresponding probability density function. Usually, they are the survival function and PDF of log-logistic. What’s more, $S_{1}(t)=S_{0}(\hat{\gamma}t)= S_{0}(e^\hat{\alpha}t)$.
 By differentiating the log-likelihood function, we can maximize the log-likelihood and estimate the coefficients $\beta$ and the scale parameter $log\sigma$.
 
-
 Step-3:
 Once the regression is performed, one can even compare the effectiveness of models with differing underlying distributions through AIC comparisons. One must simply compare the AIC values of each different model to see which has the lower AIC value, though this is not the only method of comparison. As we would have a model with multiple predictor variables, one can also perform variable selection to try to cut variables that are not as explanatory in the context of survival time or that are simply insignificant based on given p-value (or simply removed through stepwise AIC).
 
 Implementation in R:
 In R, it is simple to create an AFT model for survival analysis. Similarly to how we plot and interpret data as above in PH regression, we use the surv() function to establish that our model will be used to interpret survival data. The difference with AFT models lies in the usage of the survreg() function, which in R allows us to establish parameters (most notably distribution shape) for our model. This allows us to specify whether we want to use a Weibull, exponential, gamma, or log-logistic distribution. There are certain advantages to each type of distribution depending on circumstance, but log-logistic has the advantage of allowing non-monotonic hazard functions, which the Weibull distribution cannot replicate. 
 
-
 Note: As with most comparisons between parametric and non(or semi-)parametric methods, parametric models have the advantage in terms of ease of interpretability (the goal of a parametric model is to find a certain parameter that helps build a model representative of the data. This also leads to a disadvantage: parametric models require a foundational distribution of the data with which to base the model off of, which may not always be feasible. A violation of assumptions in a parametric model would then lead us to potentially sub-optimal results.
-
 
 
 ## 5. Result Review  
 
-*Task: Discuss whether the results getting in (2) and (4) might be different (in what way).*
+*Task: Discuss whether the results getting in (1) and (4) might be different (in what way).*
+ 
+First of all, accelerated failure time (AFT) model assumes an underlying distribution for its survival times, however, pH regression does not require any assumptions. As a parametric model, AFT needs to set up a baseline survival function, which means that the hazard function comes from a certain distribution.
+ 
+Secondly, the relationship between either the survival time or the logarithm of the survival time and the features is linear. We can also get the full likelihood instead of partial likelihood by using MLE. Full likelihood or full model indicates that AFT can do the prediction. 
+ 
+Last but not least, AFT assumes that all the predictors of observations will either accelerate or decelerate the survival time. All of the impact on survival time by predictors can be seen and analyzed in AFT model.
+ 
+In conclusion, parametric methodologies support a stronger evidence than nonparametric ones. However, nonparametric methodologies can be used in a more general way, because they do not require any assumptions in advance. If a given dataset does not meet the required assumptions, parametric model may not be the optimal choice.
 
 ## Code Appendix
 
