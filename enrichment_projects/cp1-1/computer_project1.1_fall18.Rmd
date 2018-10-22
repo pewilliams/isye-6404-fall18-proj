@@ -39,7 +39,7 @@ Below is a description of tasks and the distribution of work (%) by team member 
 Team Member & Task Description  \\
 \hline
 Yuan Gao & Data Description & PH-regression, Reference | Literature Review \\ 
-Kevin Lee & TBD  \\ 
+Kevin Lee & Summary of References, Description of AFT model procedure and R Implementation  \\ 
 Akshay Govindaraj & Bootstrap for computing 90% Confidence Interval  \\ 
 Yijun (Emma) Wan & TBD  \\ 
 Peter Williams & Code Compilation, R Debugging, Latex Formatting, Visualization  \\ 
