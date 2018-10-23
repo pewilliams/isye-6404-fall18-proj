@@ -27,23 +27,27 @@ header-includes:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+suppressPackageStartupMessages( library(survival))
+suppressPackageStartupMessages( library(survminer))
+suppressPackageStartupMessages( library(boot))
+suppressPackageStartupMessages( library(ggplot2))
 ```
 
 ## Workload Distribution
 
-Below is a description of tasks and the distribution of work (%) by team member for this project:  
+Below is a description of tasks completed by each team member for this project:  
 
 \begin{center}
 \begin{tabular}{ |l|l| } 
 \hline
 Team Member & Task Description  \\
 \hline
-Yuan Gao & Data Description & PH-regression, Reference | Literature Review \\ 
-Kevin Lee & Summary of References, Description of AFT model procedure and R Implementation  \\ 
-Akshay Govindaraj & Bootstrap for computing 90% Confidence Interval  \\ 
+Yuan Gao & Data Description, PH-regression, Reference and Literature Review \\ 
+Kevin Lee & Summary of References, Description of AFT model and R Implementation  \\ 
+Akshay Govindaraj & Bootstrap for Computing Confidence Interval  \\ 
 Yijun (Emma) Wan & Comparison between PH-regression and AFT  \\ 
 Peter Williams & Code Compilation, R Debugging, Latex Formatting, Visualization  \\ 
-Ruixuan Zhang & Co-work in Description of AFT procedure and Comparison between PH and AFT \\ 
+Ruixuan Zhang & Co-work in Description of AFT procedure and Comparison to PH  \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -54,32 +58,29 @@ Ruixuan Zhang & Co-work in Description of AFT procedure and Comparison between P
 
 ## 1. Data Description & PH-regression
 *Task: Locate a data set in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, to practice the PH-regression technique. Note that we need to predict both hazard-rate and the survival function at an input x0.*
-
-```{r data, echo = T, include = F, fig.align='center',fig.height=4}
-suppressPackageStartupMessages( library(survival))
-suppressPackageStartupMessages( library(survminer))
-suppressPackageStartupMessages( library(boot))
-data("kidney")
-knitr::kable(head(kidney),caption = 'Give this table a caption')
-```  
   
-For this exercise, I located a dataset in the survival package, that describes the recurrence times to infection, at the point of insertion of the catheter, for kidney patients using portable dialysis equipment. Catheters may be removed for reasons other than infection, in which case the observation is censored. Each patient has exactly 2 observations. It has seven variables:
+For this exercise, we relied on a dataset in the 'survival' package in R, that describes the recurrence times to infection, at the point of insertion of the catheter, for kidney patients using portable dialysis equipment. Catheters may be removed for reasons other than infection, in which case the observation is censored. Each patient has exactly 2 observations, and the dataset consists of the following variables: 
 
-1) patient: id
-
-2) time:	time
-
+1) patient: id assigned to patient
+2) time:	recurrence time to infection
 3) status:	event status
-
 4) age:	in years
-
 5) sex:	1=male, 2=female
-
 6) disease:	disease type (0=GN, 1=AN, 2=PKD, 3=Other)
-
 7) frail:	frailty estimate from original paper
 
-First, I compute the univariate Cox analyses for the four variables; then we’ll fit multivariate cox analyses using two variables to describe how the factors jointly impact on survival.  
+A preview of the data is shown here: 
+
+```{r preview_kidney, echo=F, include = T}
+data("kidney")
+knitr::kable(head(kidney,n=8),caption = 'Preview: Kidney Dataset')
+```
+  
+First, we compute univariate Cox PH effect estimates for four variables outlined below, and then we fit multi-variate Cox PH effects using two variables to describe how the factors jointly impact survival.  
+  
+The table output below shows the regression beta coefficients, the effect sizes (given as hazard ratios) and statistical significance for each of the variables in relation to overall survival. Note that a separate model was fit including each of the following covariates, individually (effects not estimate jointly):  
+
+\newpage
 
 ```{r PHregression_un, echo = F, include = T, fig.align='center',fig.height=4}
 #extract name of var, estimate, and p-value
@@ -88,9 +89,9 @@ get_cox_ph_results <- function(coxph_res){
   zph <- cox.zph(coxph_res)
   res_table <- data.frame(covariate = names(coxph_res$coefficients), 
             beta = as.numeric(coxph_res$coefficients),
-            pvalue = 
-             as.numeric(summary(coxph_res)$coefficients[colnames(summary(coxph_res)$coefficients)=="Pr(>|z|)"]),
-            rho = as.numeric(zph$table[,1])[!is.na(zph$table[,1])] )
+            rho = as.numeric(zph$table[,1])[!is.na(zph$table[,1])],
+            pvalue = as.numeric(summary(coxph_res)$coefficients[colnames(summary(coxph_res)$coefficients)=="Pr(>|z|)"] ))
+            
   return(res_table)
 }
 
@@ -103,50 +104,52 @@ results <- do.call('rbind',
           return(get_cox_ph_results(model_res))
           }))
 
-knitr::kable(results, caption = 'Model Results - Add a Better Title',digits = 2)
+knitr::kable(results, caption = 'Cox PH Regression Results',digits = 3, 
+             col.names = c('Covariate','Effect Estimate (beta)','Hazard Ratio (rho)', 'p-value'))
 ```
 
-The syntax above gives us the method to get the survival function of any given variables.The output above shows the regression beta coefficients, the effect sizes (given as hazard ratios) and statistical significance for each of the variables in relation to overall survival.
+Here are some of the key findings from the analysis here: 
 
-Following is the Cox regression results Analysis:
+1) Statistical significance, reported as a p-value from a Wald statistic, evaluates whether the beta coefficient of a given variable is statistically significantly different from 0. From the output above, we can conclude that the variables sex and frail have statistically significant coefficients, but age and disease do nott. From here on, we focus on the variables, sex (gender) and frailty (frail).
 
-1) Statistical significance, z, gives the Wald statistic value,evaluates whether the beta coefficient of a given variable is statistically significantly different from 0. From the output above, we can conclude that the variable sex and frail have highly statistically significant coefficients, but age and disease don't. So, following we focus on the sex and frail.
+2) The regression coefficients are positive signs meaning that the hazard (risk of death) is higher, and thus the estimated prognosis is worse for subjects with higher values of that variable.
 
-2) The regression coefficients are positive signs meaning that the hazard (risk of death) is higher, and thus the prognosis worse, for subjects with higher values of that variable.
+3) Hazard ratios are the exponentiated coefficients $\exp(\text{coefficient})$ which gives the effect size of the variable age. So, it gives us the predict about the hazard ratio for any given variables. The variable sex is encoded as a numeric vector. 1: male, 2: female. The beta coefficient for sex $= -0.838$ indicates that females have lower risk of kidney infection (lower survival rates) than males, based on model estimates.
 
-3) Hazard ratios are the exponentiated coefficients (exp(coef)) which give the effect size of the variable age. 
-So, it gives us the predict about the hazard ratio for any given variables. The variable sex is encoded as a numeric vector. 1: male, 2: female. The beta coefficient for sex = -0.838 indicates that females have lower risk of kidney (lower survival rates) than males, in these data.
+4) Confidence intervals of the hazard ratios is shown by the upper and lower 95% confidence intervals for the hazard ratio $\exp(\text{coefficient})$, which displayed below. 
 
-4) Confidence intervals of the hazard ratios is shown by the upper and lower 95% confidence intervals for the hazard ratio (exp(coef)).
+5) Global statistical significance p-values are also reportable, for three alternative tests: The likelihood-ratio test, Wald test, and score logrank statistics. These three methods are asymptotically equivalent.
 
-5) Global statistical significance p-values for three alternative tests for overall significance of the model: The likelihood-ratio test, Wald test, and score logrank statistics. These three methods are asymptotically equivalent.
+6) The R package 'survival' provides a function, 'cox.zph()' which shows the data are sufficiently consistent with the assumption of proportional hazards with respect to each of the variables separately as well as globally.  
 
-6) cox.zph() function shows the data are sufficiently consistent with the assumption of proportional hazards with respect to each of the variables separately as well as globally.  
+To demonstrate some of these functionalities, we visualize the expected survival proportion at any given point for a particular risk group. In this case, we visualize the survival function, layered with a model that estimates the impact of the variable 'sex', group (strata), here: 
 
 ```{r PH-regression_plot, echo = F, include = T, fig.align='center',fig.height=4}
 res.cox <- survfit(Surv(time, status) ~ sex, data =  kidney)
-ggsurvplot(res.cox, data = kidney,conf.int = TRUE, risk.table = TRUE, risk.table.col = 'strata',ggtheme = theme_minimal(),risk.table.height = 0.28) + ggtitle('Predicted Survival Probability') 
+ggsurvplot(res.cox, data = kidney,conf.int = F, risk.table = T, risk.table.col = 'strata',ggtheme = theme_minimal(),risk.table.height = 0.28) + ggtitle('Expected Survival Probability') 
 ```  
-  
-The picture is to visualize the predicted survival proportion at any given point for a particular risk group. 
 
-Besides, the syntax above is to make predict about the survival interval of any given new data.
+Further, utilizing survival model functions in R, and given new data from a patient who is Male (Sex = 1), with a fraility measure of (Frail = 2), we can generate expected survival probabilities with upper and lower confidence intervals. A snapshot is displayed below, using the 'coxph' function in the 'survival' package in R:
 
-```{r ph_reg_point_predict, echo = T, include = T}
+```{r ph_reg_point_predict, echo = F, include = T}
 res.cox <- coxph(Surv(time, status) ~ sex + frail, data =  kidney)
 new_dat <- data.frame(sex = c(1), frail = c(2))
 pref_df <- survfit(res.cox, newdata = new_dat)
-pref_df
+pred_res <- data.frame(n = pref_df$n,time = pref_df$time,  survival_prob = pref_df$surv, lower = pref_df$lower, upper = pref_df$upper)
+knitr::kable(head(pred_res,n=8), digits = 3, caption = 'Prediction Table: Sex = 1, Frail = 2')
 ```
 
-## 2. Pointwise Confidence Interval - Bootstrap Method
+## 2. Confidence Interval - Bootstrap Method
 
-*Task: Follow #4 in EP-2 to construct a 90% pointwise confidence interval based on the bootstrap method.*
+*Task: Follow #4 in EP-2 to construct a 90% confidence interval based on the bootstrap method.*
 
-The data set used is the same as the previous part. We need to add boot library
+To get a sense of the stability of the effects estimated above, we rely on the bootstrap technique, and more specifically the percentile method utilizing the kidney infection dataset described above. To generate bootstrap estimates, we rely on the 'boot' library in R. 
 
+\newpage
 
-```{r ph_bootstrap, include = F, echo = F}
+To illustrate the functionality of the bootstrap library in R, we visualize the spread, using a density plot in R, of the effect estimate for the 'age' variable, in context of the survival function, below: 
+
+```{r ph_bootstrap, include = T, echo = F, fig.align='center',fig.height=3}
 # must pass indices argument so that bootstrap can randomly choose - in this case row index
 # overly specified model tends to error out due to estimation error
 # in this case only using age as a covariate - feel free to add others # with care
@@ -164,36 +167,36 @@ bs_res <- suppressWarnings(boot(kidney, bs_fun, R=2000))
 # type options include: "norm", "basic", "perc", "stud"
 
 bs_ci <- suppressWarnings(boot.ci(bs_res, conf = 0.90, var.t0 = NULL, type = 'perc'))
-print(bs_ci)
-
-plot(bs_res)
+#print(bs_ci)
+bs_df <- data.frame(t = bs_res$t)
+ggplot(bs_df, aes(x = t)) + geom_density(color='navy', size = 1.5) + theme_minimal() + xlab('Estimate: Age Covariate') + ylab('Density Estimate') + ggtitle('Bootstrapped Estimates: Age Covariate') + geom_vline(xintercept = median(bs_df$t), linetype = 6) + xlim(-0.04,0.06)
 ```
 
 
-The above function gives the results only for age as a hazard variable. The results for the rest of the variables are as follows:
+The visualization above, highlights a symmetry of effect estimates for the variable age. This symmetry allows for utilization of the 'percentile' method in calculating effect estimate intervals, that is utilized below. Also note that where range of bootstrapped estimates does overlap with 0, it can be indicative of a lack of statistical significance. The results for the rest of the variables displayed below:
 
-sex : (-3.296, -1.567)
-age : (-0.0087, 0.0284)
-DiseaseGN : (-0.5297, 0.8909)
-DiseaseAN : (0.0379, 1.4394)
-DiseasePKD : (-3.953, -0.821)
-frail: (1.453, 2,672)
+```{r bootres, echo = F, include = T}
+est_res <- data.frame(
+  covariate = c('sex','age','DiseaseGN','DiseaseAN','DiseasePKD','frail'),
+  lower95 = c(-3.296,-0.0087,-0.5297,0.0379,-3.953,1.453),
+  upper5 = c(-1.567,0.0284,0.8909,1.4394,-0.821,2.672)
+)
+knitr::kable(est_res,col.names =c('Covariate','Percentile: Lower 5th','Percentile: Upper 95th')  ,caption = 'Bootstrap Effect Estimates (Percentile Range)', digits = 3)
+```
+  
+*Note: Estimates Based on R=2000 Bootstrap Replications*
 
-There are 2 significant hazard variables sex and frail.
+Based on the results from the bootstrapping exercise, the hazard variables sex and frail have more significant effect estimates, since the middle 90% of effect estimates did not overlap 0, as shown above in the percentile range table above. Other findings and comments from this analysis are highlighted below:
 
-Conclusions:
+1) With PH regression models, the best specified hazard variables are generally the ones which do not change with time. Since the variable 'age' is in this dataset, and it certainly changes with time it should be used with caution. 
 
-1) In the PH regression, hazard variables are generally the ones which do not changes with time. Age will change with time and is therefore not an appropriate hazard variable.
+2) For the variable 'sex', or gender, we get the boostrap estimate of the value of the hazard coefficient consistently between ($-3.253$ and $-1.622$). Since the numeric representation for men is $1$, we can conclude that men are at a higher risk than women for kidney infection.
 
-2) We get the value of the hazard coefficient between (-3.253 and -1.622). Since 1 is for men it can be concluded that men are at a higher risk than women.
+3) The variable, 'frail', or a measure of frailty, is the most significant hazard variable, given that meaning of the variable, it makes sense that the coefficient is positive, meaning more frail patients are at a higher risk of infection.
 
-3) Frail is the most significant hazard variable. This variable is an estimate of fraility and it makes sense that the coefficient is postive.
+4) It is unclear as to which disease is more hazardous. The values seems to suggest that DiseaseAN is the most dangerous but it is hard to conclude when the lower bound is very close to zero (0.0379).
 
-4) It is unclear as to which disease is more dangerous as a hazard. The values seems to suggest that DiseaseAN is the most dangerous but it is hard to conclude when the lower bound is very close to zero (0.0379).
-
-
-
-## 3. Reference | Literature Review  
+## 3. References & Literature Review  
 
 *Task: Skim through the CP-1 references given in Files> Projects> CP-1> Reference> directory to write a two-page report for summarizing the work there.*
 
@@ -239,14 +242,15 @@ As it acts as a parametric alternative to the Cox PH regression model, the AFT m
 
 Step-2:
 As we can see from the simplified AFT model equation, AFT models (parametric as they are) are analogous to generalized linear regression models in the sense that the results of the model can be interpreted similarly to how a typical regression can be. 
-In interpreting the coefficients, one must note that the equation is based on a logarithm of time, so once we get the values of the B coefficients, we must rearrange the equation. $$\hat{\gamma} = exp(\hat{\alpha})$$
+In interpreting the coefficients, one must note that the equation is based on a logarithm of time, so once we get the values of the B coefficients, we must rearrange the equation.  
+$$\hat{\gamma} = exp(\hat{\alpha})$$
 Where $\hat{\alpha}$ can be estimated from historical data. This allows us to calculate our acceleration factor. For example, if we have a positive acceleration factor, for example 2, then we would be able to say that the variable increases our survival time by a factor of 2. If we have a negative value of 2 as our acceleration factor, the survival time would be "accelerated" or shortened by a factor of 2. Keep in mind that the predictor variables' effects are indeed multiplicative. 
 If use the MLE method to estimate the parameters, based on the preset distribution and acceleration factor, it is feasible to compute the full likelihood:
-$$L(\beta,\sigma) = \prod\limits_{i=1}^n[\frac{1}{\sigma}f_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})]^{\delta_i}S_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})^{1-\delta_i}$$where $\delta_i$ is the indicator to show that whether data is censored or not, if an observation is right-censored, the value of $\delta_i$ should be 0, otherwise it should be 1. Specifically, the likelihood is full rather than partial (different from Cox PH regression).
+$$L(\beta,\sigma) = \prod\limits_{i=1}^n[\frac{1}{\sigma}f_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})]^{\delta_i}S_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})^{1-\delta_i}$$ where $\delta_i$ is the indicator to show that whether data is censored or not, if an observation is right-censored, the value of $\delta_i$ should be 0, otherwise it should be 1. Specifically, the likelihood is full rather than partial (different from Cox PH regression).
 Let $\epsilon_i= \frac {logt_{i}-x^{\mathrm{ T }}\beta}{\sigma}$,thus, the log-likelihood become:
 $$l(\beta,\sigma)= \sum\limits_{i=1}^{n}[-\delta_{i}log\sigma+\delta_{i}logf_{0}(\epsilon_i)+(1-\delta_{i})logS_{0}(\epsilon_i)]$$
-where $S_{0}(\epsilon_i)$ is called “baseline survival function” and $f_{0}(\epsilon_i)$ is the corresponding probability density function. Usually, they are the survival function and PDF of log-logistic. What’s more, $S_{1}(t)=S_{0}(\hat{\gamma}t)= S_{0}(e^\hat{\alpha}t)$.
-By differentiating the log-likelihood function, we can maximize the log-likelihood and estimate the coefficients $\beta$ and the scale parameter $log\sigma$.
+where $S_{0}(\epsilon_i)$ is called “baseline survival function” and $f_{0}(\epsilon_i)$ is the corresponding probability density function. Usually, they are the survival function and PDF of log-logistic. What’s more $S_{1}(t)=S_{0}(\hat{\gamma} t)= S_{0}(e^{\hat{\alpha}t})$
+By differentiating the log-likelihood function, we can maximize the log-likelihood and estimate the coefficients $\beta$ and the scale parameter $log \sigma$.
 
 Step-3:
 Once the regression is performed, one can even compare the effectiveness of models with differing underlying distributions through AIC comparisons. One must simply compare the AIC values of each different model to see which has the lower AIC value, though this is not the only method of comparison. As we would have a model with multiple predictor variables, one can also perform variable selection to try to cut variables that are not as explanatory in the context of survival time or that are simply insignificant based on given p-value (or simply removed through stepwise AIC).
@@ -268,6 +272,8 @@ Secondly, the relationship between either the survival time or the logarithm of 
 Last but not least, AFT assumes that all the predictors of observations will either accelerate or decelerate the survival time. All of the impact on survival time by predictors can be seen and analyzed in AFT model.
  
 In conclusion, parametric methodologies support a stronger evidence than nonparametric ones. However, nonparametric methodologies can be used in a more general way, because they do not require any assumptions in advance. If a given dataset does not meet the required assumptions, parametric model may not be the optimal choice.
+
+\newpage 
 
 ## Code Appendix
 
