@@ -169,7 +169,7 @@ bs_res <- suppressWarnings(boot(kidney, bs_fun, R=2000))
 bs_ci <- suppressWarnings(boot.ci(bs_res, conf = 0.90, var.t0 = NULL, type = 'perc'))
 #print(bs_ci)
 bs_df <- data.frame(t = bs_res$t)
-ggplot(bs_df, aes(x = t)) + geom_density(color='navy', size = 1.5) + theme_minimal() + xlab('Estimate: Age Covariate') + ylab('Density Estimate') + ggtitle('Bootstrapped Estimates: Age Covariate') + geom_vline(xintercept = median(bs_df$t), linetype = 6) + xlim(-0.04,0.06)
+suppressWarnings(ggplot(bs_df, aes(x = t)) + geom_density(color='navy', size = 1.5) + theme_minimal() + xlab('Estimate: Age Covariate') + ylab('Density Estimate') + ggtitle('Bootstrapped Estimates: Age Covariate') + geom_vline(xintercept = median(bs_df$t), linetype = 6) + xlim(-0.04,0.06))
 ```
 
 
@@ -200,72 +200,85 @@ Based on the results from the bootstrapping exercise, the hazard variables sex a
 
 *Task: Skim through the CP-1 references given in Files> Projects> CP-1> Reference> directory to write a two-page report for summarizing the work there.*
 
-Ref-1.0 and Ref-1.1 introduces the semiparametric regression, which means the combination of parametric(may be mis specified and inconsistent) and nonparametric models. So, there are many assumptions should be satisfied or verified. Although some assumptions are difficult to verify, they are generally satisfied for well-behaved estimators. But, they make Andrews’ MINPIN, the semiparametric estimator has the same asymptotic distribution as the idealized estimator obtained by replacing the nonparametric estimate with the true function, not easy to implement. Semi-parametric regression is typically used in cases where a nonparametric model may not perform well enough or where a parametric model error distribution is unknown.
-Semiparametric regression owns three popular methods: 1) partially linear, 2) index and 3) varying coefficient models.
+References 1.0 and 1.1 introduce semiparametric regression, a combination of parametric and non-parametric models. Challenges of parametric approiaches include the need to satisfy and verify many model assumptions. Although particular assumptions of models may be difficult to verify, they are generally satisfied for well-behaved estimators. 
 
-Reference 2.0 and 2.1 focus on introducing the process and characters of PH model. 
-Firstly it describes the definition of survivor function S(t) , hazard function h(t) and cumulative hazard function H(t) which bring interpretability, analytic simplifications and modeling simplifications.
-Secondly, it introduces the situation with censored data which is classified into three categories:
-1) clearly informative: Type I or II Censoring. 2) noninformative and 3) Less clear situation.
-Thirdly, after the introduction, they move to the process of PH model, which shows X are time independent. And PH model is popular due to robustness, non-negative hazards, easily compute the hazard ratio and can estimate h(t,X) and S(t,X).
-Fourthly, reference talks two types of likelihood in ML Estimation of the Cox PH Model.
-1) full likelihood 2) partial likelihood which considers probabilities for subject who fail and does not consider probabilities for censored subjects explicitly.
-Full likelihood allows us to estimate the baseline hazard function, but the partial likelihood allows us to make estimates of parameter B while accounting for censored data. Once partial likelihood is maximized with respect to the regression parameter, it can then be used to eventually estimate the baseline hazard function. A similar partial likelihood process (penalized partial likelihood) can be utilized in addition to iterative sure independence screening to allow high-dimensional variable selection, which apparently has very small false selection while maintaining small mean squared error. This type of selection through penalization is an extension of classical selection techniques such a stepwise and bootstrap procedures to be used for PH regression, which means simulations can be used to demonstrate the viability of said selection methods
-Fifthly, reference also introduces the estimation of survival curves called adjusted survival curves. The last but not the least, as the content in reference 1, there are several assumptions in semiparametric regression, so does PH model. 
+As an example, in Andrews’ MINPIN, the semi-parametric estimator has the same asymptotic distribution as the idealized estimator obtained by replacing a non-parametric estimate with the true function. However, this is not easy to implement as described. To further elaborate, semi-parametric regression is typically used in cases where a non-parametric model may not perform well enough or where a parametric model error distribution is unknown. Further discussion of semi-parametric regression along the most popular methods is also covered e.g. 1) partially linear, 2) index and 3) varying coefficient models.
 
-Reference 2.2 gives us a real world case in population-based cancer survival analysis using PH model. Patient survival rates provide such a measure to effectively diagnose and treat the cancers that arise and require a means of measuring progress in this specific area. 
-There are several measures including cause-specific survival, which can estimate net survival, and relative survival which is calculated by observed survival proportion divided by expected survival proportion. And, it uses flexible parametric models with restricted cubic splines to fit relative survival curve other than cox model that cannot be applied to model a difference in two rates.
+References 2.0 and 2.1 focus on introducing the process and characteristics of the Proporational Hazards model. 
 
-Reference 2.3 talks about variable selection for Cox’s proportional hazards model in high dimensional space by extending the sure screening procedure to an iterative version. 
-It extends the key idea of SIS and ISIS to handle Cox’s proportional hazards model: 1) ranking by marginal utility 2) Conditional feature ranking and iterative feature selection3) new variants of SIS and ISIS for reducing FSR. Finally, numerical simulation studies have shown encouraging performance of the proposed method in comparison with other techniques such as LASSO. 
+Firstly it describes the definition of survivor function $S(t)$ , hazard function $h(t)$ and cumulative hazard function $H(t)$ which bring interpretability, analytic simplifications and modeling simplifications.  
+
+Secondly, the references introduce complexities of censored data which is classified into three categories:  
+
+1) Clearly informative: Type I or II Censoring,     
+2) Noninformative, and  
+3) Less clear Situations.  
+
+After this introduction, the references move into the process of PH model, demonstrating the time independence of additional variables, $X$. The popularity of the PH model, due to its robustness, non-negative hazards, and the computability of the hazard ratios and estimates of  $h(t,X)$ and $S(t,X)$ is also covered.
+
+\newpage
+
+The references also discuss two types of likelihood in ML Estimation of the Cox PH Model:  
+
+1) full likelihood, and  
+2) partial likelihood, that considers probabilities for subject who fail and does not consider probabilities for censored subjects explicitly
+
+The full likelihood estimation approach, allows us to estimate the baseline hazard function, whereas the partial likelihood allows us to make estimates of parameter $\beta$ while accounting for censored data. Once the partial likelihood is maximized with respect to regression parameters, it can then be used to eventually estimate the baseline hazard function.  
+
+A similar partial likelihood process (penalized partial likelihood) can be utilized in addition to iterative sure independence screening, to allow high-dimensional variable selection, which as described, has very small false selection while maintaining small mean squared error. This type of selection through penalization is an extension of classical selection techniques such a stepwise and bootstrap procedures to be used for PH regression, which means simulations can be used to demonstrate the viability of said selection methods.  Finally, the references cited above also introduce the estimation of survival curves called adjusted survival curves, and the many assumptions in these semi-parametric regressions, similar to the PH model. 
+
+Reference 2.2 provides a real world case in population-based cancer survival analysis using PH model. Patient survival rates provide such a measure to effectively diagnose and treat the cancers that arise and require a means of measuring progress in this specific area. 
+
+Several measures including cause-specific survival, which can estimate net survival, and relative survival which is calculated by observed survival proportion divided by expected survival proportion are discussed. Flexible parametric models with restricted cubic splines to fit relative survival curve other than Cox PH model since, as an example, the traditional Cox PH model cannot be applied to model a difference in two rates.
+
+Reference 2.3 discusses variable selection for the Cox PH model in high dimensional space by extending the sure screening procedure to an iterative version. This reference extends the key idea of SIS and ISIS to handle Cox’s proportional hazards model by: 1) Ranking by marginal utility 2) Conditional feature ranking and iterative feature selection, and 3) New variants of SIS and ISIS for reducing FSR. Finally, numerical simulation studies showing encouraging results in the performance of the proposed methods, in comparison with other techniques such as LASSO, is presented. 
 
 Reference 3.1 introduces the Bayesian variable selection for proportional hazards regression models with right censored data where a nonparametric prior is specified for the baseline hazard rate with the use of discrete gamma process and a semi-automatic parametric informative prior specification that focuses on the observables for the regression coefficients and the model space. In addition, it proposes a Markov chain Monte Carlo method to compute the posterior model probabilities.
 
-Reference 4.1 proposes a piecewise exponential representation of the original survival data to link hazard regression with estimation schemes, which is based on the Poisson likelihood. And it makes recent advances for model building in exponential family regression accessible and in the nonproportional hazard regression. 
-The reason why coming the above new method is that recent statistical methods typically introduce additional difficulties, such as immediate  appeal  in terms  of  flexibility, when a subset of covariates and the corresponding modeling alternatives have to be chosen. 
-The article implement a two-stage stepwise selection approach, an approach based on doubly penalized likelihood, and a component wise functional gradient descent approach will be adapted to the piecewise exponential regression problem.
+Reference 4.1 proposes a piecewise exponential representation of the original survival data to link hazard regression with estimation schemes, which is based on the Poisson likelihood. Recent advances for model building related to exponential family regression, and in the nonproportional hazard regression are also covered. Recent statistical developments that appeal to needs for flexibility, when a subset of covariates and the corresponding modeling alternatives have to be chosen is discussed. The article also describes the implementation of a two-stage stepwise selection approach, an approach based on doubly penalized likelihood, and a component wise functional gradient descent approach will can be adapted to the piece-wise exponential regression problem.
 
-Reference 5.1 shows using machine learning to do survival analysis. Because there are always some censored data which can be effectively handled using survival analysis techniques.
-Although above references developed traditional statistical approaches to overcome this censoring issue. In addition, many machine learning algorithms are adapted to effectively handle survival data and tackle other challenging problems that arise in real world data.  It provides a comprehensive and structured review of the representative statistical methods along with the machine learning techniques used in survival analysis and provide a detailed taxonomy of the existing methods. One can perform survival trees, neural networks, bayesian methods (as discussed prior), support vector machines, boosting, and other such advanced machine learning techniques. 
+Finally, reference 5.1 describes machine learning techniques adapted to do survival analysis, since the presence of censored data is effectively handled using survival analysis techniques. Although above references developed traditional statistical approaches to overcome this censoring issue. In addition, many machine learning algorithms are adapted to effectively handle survival data and tackle other challenging problems that arise in real world data.  It provides a comprehensive and structured review of the representative statistical methods along with the machine learning techniques used in survival analysis and provide a detailed taxonomy of the existing methods. One can perform survival trees, neural networks, bayesian methods (as discussed prior), support vector machines, boosting, and other such advanced machine learning techniques to solve many of the same problems addressed by classical statistical techniques. 
 
 ## 4. Implementation: Reference Procedure  
 
 *Task: Outline steps for implementing one of the studied procedure addressed in the reference. You DO NOT need to implement them, but describe how to do it.*
 
-A method of survival analysis provided in the references was the accelerated failure time (AFT) model. This is a parametric alternative to the Cox Proportional Hazards model, which is originally semi-parametric. 
-Several steps below show how to implement the regression based on AFT model.
+One method of survival analysis provided in the references was the accelerated failure time (AFT) model. This is a parametric alternative to the Cox Proportional Hazards model, which is originally semi-parametric. To describe application of this approach in more detail, we highlight and summarize the main implementation steps:  
 
-Step-1:
-As the AFT model is parametric, certain assumptions must first be met. The big difference (assumption) for an AFT model is that it assumes an underlying distribution for its survival times, while PH regression does not.
-The general equation for an accelerated failure time model is $$log(T) = \beta_0 + \beta_{1}X_{1} + ... + \beta_{p}X_{p} + \epsilon\sigma$$ where T is the survival time, the $\beta$ values are coefficients of each predictor's effect on the log(T) (since survival times are always positive). The sigma term in the model equation is a scale parameter, which depends upon the shape of the underlying distribution, and the error term is assumed to be independent and identically distributed (as well as independent of the X-values). Notice that in an AFT model, the survival time will "contract" or "stretch" as a function of the model's predictor variables (slightly different interpretation compared to Cox PH). This stems from the idea that in AFT models the predictor variables have a multiplicative event on the log of survival time.
-As it acts as a parametric alternative to the Cox PH regression model, the AFT model also commonly employs the Weibull and Exponential distributions, though the typical distribution used is the log-logistic distribution. 
+Step-1:  
+As the AFT model is parametric, certain assumptions must first be met. The big difference (assumption) for an AFT model is that it assumes an underlying distribution for its survival times, while PH regression does not. The general equation for an accelerated failure time model is $log(T) = \beta_0 + \beta_{1}X_{1} + ... + \beta_{p}X_{p} + \epsilon\sigma$, where $T$ is the survival time, the $\beta$ values are coefficients of each predictor's effect on the $log(T)$, (since survival times are always positive). The $\sigma$ term in the model equation is a scale parameter, which depends upon the shape of the underlying distribution, and the error term is assumed to be independent and identically distributed (as well as independent of the $X$-values). 
 
-Step-2:
+Notice that in an AFT model, the survival time will "contract" or "stretch" as a function of the model's predictor variables (slightly different interpretation compared to Cox PH). This stems from the idea that in AFT models the predictor variables have a multiplicative event on the log of survival time. As it acts as a parametric alternative to the Cox PH regression model, the AFT model also commonly employs the Weibull and Exponential distributions, though the typical distribution used is the log-logistic distribution. 
+
+Step-2:  
 As we can see from the simplified AFT model equation, AFT models (parametric as they are) are analogous to generalized linear regression models in the sense that the results of the model can be interpreted similarly to how a typical regression can be. 
-In interpreting the coefficients, one must note that the equation is based on a logarithm of time, so once we get the values of the B coefficients, we must rearrange the equation.  
+In interpreting the coefficients, one must note that the equation is based on a logarithm of time, so once we get the values of the B coefficients, we must rearrange the equation.    
 $$\hat{\gamma} = exp(\hat{\alpha})$$
-Where $\hat{\alpha}$ can be estimated from historical data. This allows us to calculate our acceleration factor. For example, if we have a positive acceleration factor, for example 2, then we would be able to say that the variable increases our survival time by a factor of 2. If we have a negative value of 2 as our acceleration factor, the survival time would be "accelerated" or shortened by a factor of 2. Keep in mind that the predictor variables' effects are indeed multiplicative. 
-If use the MLE method to estimate the parameters, based on the preset distribution and acceleration factor, it is feasible to compute the full likelihood:
-$$L(\beta,\sigma) = \prod\limits_{i=1}^n[\frac{1}{\sigma}f_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})]^{\delta_i}S_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})^{1-\delta_i}$$ where $\delta_i$ is the indicator to show that whether data is censored or not, if an observation is right-censored, the value of $\delta_i$ should be 0, otherwise it should be 1. Specifically, the likelihood is full rather than partial (different from Cox PH regression).
-Let $\epsilon_i= \frac {logt_{i}-x^{\mathrm{ T }}\beta}{\sigma}$,thus, the log-likelihood become:
-$$l(\beta,\sigma)= \sum\limits_{i=1}^{n}[-\delta_{i}log\sigma+\delta_{i}logf_{0}(\epsilon_i)+(1-\delta_{i})logS_{0}(\epsilon_i)]$$
-where $S_{0}(\epsilon_i)$ is called “baseline survival function” and $f_{0}(\epsilon_i)$ is the corresponding probability density function. Usually, they are the survival function and PDF of log-logistic. What’s more $S_{1}(t)=S_{0}(\hat{\gamma} t)= S_{0}(e^{\hat{\alpha}t})$
-By differentiating the log-likelihood function, we can maximize the log-likelihood and estimate the coefficients $\beta$ and the scale parameter $log \sigma$.
+Where $\hat{\alpha}$ can be estimated from historical data. This allows us to calculate our acceleration factor. For example, if we have a positive acceleration factor, for example 2, then we would be able to say that the variable increases our survival time by a factor of 2. If we have a negative value of 2 as our acceleration factor, the survival time would be "accelerated" or shortened by a factor of 2. Keep in mind that the predictor variables' effects are indeed multiplicative.  
 
-Step-3:
-Once the regression is performed, one can even compare the effectiveness of models with differing underlying distributions through AIC comparisons. One must simply compare the AIC values of each different model to see which has the lower AIC value, though this is not the only method of comparison. As we would have a model with multiple predictor variables, one can also perform variable selection to try to cut variables that are not as explanatory in the context of survival time or that are simply insignificant based on given p-value (or simply removed through stepwise AIC).
+If use the MLE method to estimate the parameters, based on the preset distribution and acceleration factor, it is feasible to compute the full likelihood:    
+$$L(\beta,\sigma) = \prod\limits_{i=1}^n[\frac{1}{\sigma}f_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})]^{\delta_i}S_{0}(\frac{logt_{i}-x^{\mathrm{T}}\beta}{\sigma})^{1-\delta_i}$$  
 
-Implementation in R:
-In R, it is simple to create an AFT model for survival analysis. Similarly to how we plot and interpret data as above in PH regression, we use the surv() function to establish that our model will be used to interpret survival data. The difference with AFT models lies in the usage of the survreg() function, which in R allows us to establish parameters (most notably distribution shape) for our model. This allows us to specify whether we want to use a Weibull, exponential, gamma, or log-logistic distribution. There are certain advantages to each type of distribution depending on circumstance, but log-logistic has the advantage of allowing non-monotonic hazard functions, which the Weibull distribution cannot replicate. 
+where $\delta_i$ is the indicator to show that whether data is censored or not, if an observation is right-censored, the value of $\delta_i$ should be 0, otherwise it should be 1. Specifically, the likelihood is full rather than partial (different from Cox PH regression).
+Let $\epsilon_i= \frac {logt_{i}-x^{\mathrm{ T }}\beta}{\sigma}$, thus, the log-likelihood becomes:  
 
-Note: As with most comparisons between parametric and non(or semi-)parametric methods, parametric models have the advantage in terms of ease of interpretability (the goal of a parametric model is to find a certain parameter that helps build a model representative of the data. This also leads to a disadvantage: parametric models require a foundational distribution of the data with which to base the model off of, which may not always be feasible. A violation of assumptions in a parametric model would then lead us to potentially sub-optimal results.
+$$l(\beta,\sigma)= \sum\limits_{i=1}^{n}[-\delta_{i}log\sigma+\delta_{i}logf_{0}(\epsilon_i)+(1-\delta_{i})logS_{0}(\epsilon_i)]$$  
+where $S_{0}(\epsilon_i)$ is called “baseline survival function” and $f_{0}(\epsilon_i)$ is the corresponding probability density function. Usually, they are the survival function and PDF of log-logistic. What’s more we have $S_{1}(t)=S_{0}(\hat{\gamma} t)= S_{0}(e^{\hat{\alpha}t})$.
+By differentiating the log-likelihood function, we can maximize the log-likelihood and estimate the coefficients $\beta$ and the scale parameter $log \sigma$.  
 
+Step-3:  
+Once the regression is performed, one can even compare the effectiveness of models with differing underlying distributions through AIC comparisons. One must simply compare the AIC values of each different model to see which has the lower AIC value, though this is not the only method of comparison. As we would have a model with multiple predictor variables, one can also perform variable selection to try to cut variables that are not as explanatory in the context of survival time or that are simply insignificant based on given p-value (or simply removed through stepwise AIC).  
+
+Implementation in R:  
+In R, it is simple to create an AFT model for survival analysis. Similarly to how we plot and interpret data as above in PH regression, we use the surv() function to establish that our model will be used to interpret survival data. The difference with AFT models lies in the usage of the survreg() function, which in R allows us to establish parameters (most notably distribution shape) for our model. This allows us to specify whether we want to use a Weibull, exponential, gamma, or log-logistic distribution. There are certain advantages to each type of distribution depending on circumstance, but log-logistic has the advantage of allowing non-monotonic hazard functions, which the Weibull distribution cannot replicate.   
+
+*Note: As with most comparisons between parametric and non(or semi-)parametric methods, parametric models have the advantage in terms of ease of interpretability (the goal of a parametric model is to find a certain parameter that helps build a model representative of the data. This also leads to a disadvantage: parametric models require a foundational distribution of the data with which to base the model off of, which may not always be feasible. A violation of assumptions in a parametric model would then lead us to potentially sub-optimal results.*
 
 ## 5. Result Review  
 
 *Task: Discuss whether the results getting in (1) and (4) might be different (in what way).*
  
-First of all, accelerated failure time (AFT) model assumes an underlying distribution for its survival times, however, pH regression does not require any assumptions. As a parametric model, AFT needs to set up a baseline survival function, which means that the hazard function comes from a certain distribution.
+The accelerated failure time (AFT) model described above, assumes an underlying distribution for its survival times, however, Cox PH regression does not require any assumptions. As a parametric model, AFT needs to set up a baseline survival function, which means that the hazard function comes from a certain distribution.
  
 Secondly, the relationship between either the survival time or the logarithm of the survival time and the features is linear. We can also get the full likelihood instead of partial likelihood by using MLE. Full likelihood or full model indicates that AFT can do the prediction. 
  
@@ -276,26 +289,22 @@ In conclusion, parametric methodologies support a stronger evidence than nonpara
 \newpage 
 
 ## Code Appendix
-
 #### PH Regression Model Fitting Code
-
 The following code demonstrates our approach to fit each potential co-variate independently to estimate its impact in context of the survival function, utilized in task 1:  
 
 ```{r PHregression_code_appendix, echo = T, include = T}
-#extract name of var, estimate, and p-value
 #helper to extract model summaries in tabular format
 get_cox_ph_results <- function(coxph_res){
-  zph <- cox.zph(coxph_res)
-  res_table <- data.frame(covariate = names(coxph_res$coefficients), 
-            beta = as.numeric(coxph_res$coefficients),
+ zph <- cox.zph(coxph_res)
+  res_table <- data.frame(
+  covariate = names(coxph_res$coefficients), 
+  beta = as.numeric(coxph_res$coefficients),
             pvalue = 
-             as.numeric(summary(coxph_res)$coefficients[colnames(summary(coxph_res)$coefficients)=="Pr(>|z|)"]),
-            rho = as.numeric(zph$table[,1])[!is.na(zph$table[,1])] )
-  return(res_table)
+  as.numeric(summary(coxph_res)$coefficients[colnames(summary(coxph_res)$coefficients)=="Pr(>|z|)"]),
+  rho = as.numeric(zph$table[,1])[!is.na(zph$table[,1])] )
+return(res_table)
 }
-
 variables <- c('age','sex','disease','frail')
-
 results <- do.call('rbind',
           lapply(variables, function(x){
                   model_formula <- as.formula(paste0("Surv(time, status) ~ ",x))
@@ -305,11 +314,9 @@ results <- do.call('rbind',
 ```
 
 #### Bootstrap Procedure 
-
-The following outlines our bootstrap procedure for section 1.3, utilizing functionality from the *boot* package in R: 
-
+The following outlines our bootstrap procedure for section 1.3, utilizing functionality from the *boot* package in R:  
 ```{r ph_bootstrap_ca, include = T, echo = T}
-# must pass indices argument so that bootstrap can randomly choose - in this case row index
+# must pass indices argument so that bootstrap can randomly choose
 # in this case only using age as a covariate below
 suppressPackageStartupMessages( library(boot))
 #bootstrap function - age coefficient only here
@@ -318,18 +325,13 @@ bs_fun <- function(data, indices){
   	res.cox <- coxph(Surv(time, status) ~ age , data = bs_dat)
   	return(as.numeric(res.cox$coefficients["age"]))
 }
-
 bs_res <- boot(kidney, bs_fun, R=2000) # R = number of replications
 
-#plot(bs_res) #if symmetric - ok to use percentile approach
 # type options include: "norm", "basic", "perc", "stud"
-
 bs_ci <- boot.ci(bs_res, conf = 0.95, var.t0 = NULL, type = 'perc')
 ```
 
-
 *Questions?*  
-
 *Contact: ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu*
 
 
