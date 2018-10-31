@@ -89,6 +89,14 @@ Confidence Interval (HPD-CI) for a better version of this idea.
   i) what is the goal of the study,  
   ii) key ideas in solving the problem, and  
   iii) what do you learn from their real-life data study  
+Pulication 1: Xu, R. (n.d.). Proportional Hazards Mixed Models: A Review with Applications to Twin Models.http://www.stat-d.si/mz/mz1.1/xu.pdf
+Goal: used the twin pairs consisting of monozygotic and dizygotic twins to implement Proportional Hazards Mixed Models (PHMM) for mixed effects models with right-censored data. 
+Key ideas:
+1.	added random effects (Normal distribution) to traditional PH model which enable covariate by cluster interactions.
+2.	took log, the model is written in the equivalent form of a linear transformation model.
+3.	decomposed the variation in the transformed event time, into contributions from the fixed covariate effects, the random effects, and a fixed error distribution.
+4.	used EM algorithm to find the estimators where the M-step implementation was similar to the standard Cox model, and the E-step involved Markov Chain Monte Carlo (MCMC) to approximate the conditional distribution of the random effects given data.
+Study: standard cox model is just a beginning. Faced with the real world problem and data, there is more complex relationships. We need to capture mixed, or cluster specific, covariate effects. So, when we study the statistical methods we need to understanding the assumptions, mathematical procedure, results and applications. As a result, we can easily combine methods to analysis the real world problem. 
 
   
     
