@@ -89,7 +89,8 @@ Confidence Interval (HPD-CI) for a better version of this idea.
   i) what is the goal of the study,  
   ii) key ideas in solving the problem, and  
   iii) what do you learn from their real-life data study  
-Pulication 1: Xu, R. (n.d.). Proportional Hazards Mixed Models: A Review with Applications to Twin Models.http://www.stat-d.si/mz/mz1.1/xu.pdf
+Pulication 1: 
+Xu, R. (n.d.). Proportional Hazards Mixed Models: A Review with Applications to Twin Models.http://www.stat-d.si/mz/mz1.1/xu.pdf
 Goal: used the twin pairs consisting of monozygotic and dizygotic twins to implement Proportional Hazards Mixed Models (PHMM) for mixed effects models with right-censored data. 
 Key ideas:
 1.	added random effects (Normal distribution) to traditional PH model which enable covariate by cluster interactions.
@@ -97,6 +98,32 @@ Key ideas:
 3.	decomposed the variation in the transformed event time, into contributions from the fixed covariate effects, the random effects, and a fixed error distribution.
 4.	used EM algorithm to find the estimators where the M-step implementation was similar to the standard Cox model, and the E-step involved Markov Chain Monte Carlo (MCMC) to approximate the conditional distribution of the random effects given data.
 Study: standard cox model is just a beginning. Faced with the real world problem and data, there is more complex relationships. We need to capture mixed, or cluster specific, covariate effects. So, when we study the statistical methods we need to understanding the assumptions, mathematical procedure, results and applications. As a result, we can easily combine methods to analysis the real world problem. 
+
+
+Publication 2: 
+J Gui, H Li, Penalized Cox regression analysis in the high- dimensional and low-sample size settings, with application to microarray gene expression data, Bioinformatics, Volume 21, Issue 13, 1 July 2005, Pages 3001–3008, https://academic.oup.com/bioinformatics/article/21/13/3001/196819
+
+Goal: Find a model with good prediction accuracy and parsimony property to predict the classified outcome of different types of cancer using gene expression profiles of the cancerous cells as predictors under restriction of high-dimensionality and low-sample-size.
+
+Key ideas in solving the problem:
+
+The article use statistical method mainly including Cox proportional hazard regression model and Lasso estimation to conduct a LARS-Cox procedure which is based on LARS algorithm.
+
+1.	Collect data about micro array gene expression and categorical outcome.
+
+2.	Use Cox PH regression model to build up log-partial-likelihood function with respect to coefficients $\beta$ of gene expression signatures.
+
+3.	Use Lasso estimate for estimating $\beta$ subject to the summation of parameters $\beta$’s is less than a tuning parameter s that determine how many covariates with coefficients are zero.
+
+4.	Minimize the Cross-validated partial likelihood to choose the best value of tuning parameter s.
+
+5.	Minimize a specific expansion of PH likelihood function (constructed through one-term Taylor Series) using iterative method and find the estimate of $\beta$ with smallest variance.
+
+6.	Select gene expression profiles using the LARS-Cox produce and compare the prediction results with other methods.
+It turns out that the LARS-Cox procedure is very useful in identifying genes expressions, building a parsimonious predictive model and classifying patients into relevantly higher-risk and lower-risk groups.
+
+Study:
+Based on standard Cox proportional hazard regression model, researchers often use different statistical method combined with the standard model to optimize the procedure and outcome of regression, which is based on practice of real-life data analysis and adequate statistical knowledges. In this way, it becomes possible to optimize a technical problem such as high-dimensionality and small-sample-size in real life application.
 
   
     
