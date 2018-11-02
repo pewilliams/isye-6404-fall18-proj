@@ -115,6 +115,14 @@ Frail: ()
 ii) If the R-program provides 90% confidence interval from either normal or chi-square
 approximation based on the large-sample theory, it would be worthwhile to compare
 the results against the ones given above to examine what R-program is doing.  
+
+The R program boot.ci() does indeed have a function that allows us to create a 90% confidence interval from normal approximation, though 
+```{r bootstrap_norm, include = T, echo = F, fig.align='center',fig.height=3}
+bs_ci <- suppressWarnings(boot.ci(bs_res_age, conf = 0.90, var.t0 = NULL, type = "norm"))
+print(bs_ci)
+```
+This gives us a confidence interval that is quite similar to the confidence interval calculated from part (i), though the "normal approximation" interval is slightly narrow compared to the confidence interval in (i). This leads one to believe there is another factor involved in the R program's interval calculation, as the 1.645 used in (i) is based off of normal approximations using z. 
+
 iii) If the distribution of the bootstrap samples of beta-estimate is not symmetric like
 normal, use 10000*0.05 = 500th lower and upper percentiles as the second largesample
 CI. This is the so-called Percentile-Bootstrap-CI.  
