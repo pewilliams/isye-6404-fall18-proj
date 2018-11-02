@@ -55,7 +55,7 @@ Ruixuan Zhang & ...TBD  \\
 
 \newpage
 
-## 1. Boostrap Method 
+## 1. Bootstrap Method 
 
 Use the bootstrap method to construct a 90% pointwise confidence interval (CI) of betacoefficient(s)
 based on the PH-regression parameter-estimate(s). With the 10000
@@ -64,6 +64,54 @@ the methods below to construct CIs.
 i) Calculate standard error (denoted as s.e.(beta-est)) of a beta-estimate from the 1000
 bootstrapped beta-estimates. Use [ beta-est. +- 1.645*s.e.(beta-est.) ] as the largesample
 CI.  
+
+```{r ph_bootstrap, include = T, echo = F, fig.align='center',fig.height=3}
+
+library(ggplot2)
+
+library(boot)
+library(survival)
+data("kidney")
+
+
+############Function for bootstrapping "Age"
+bs_fun_age <- function(data, indices){
+	bs_dat <- data[indices,]
+  	res.cox <- coxph(Surv(time, status) ~ age + sex + disease + frail , data = bs_dat)
+  	return(as.numeric(res.cox$coefficients["age"]))
+}
+############Sex
+bs_fun_sex <- function(data, indices){
+	bs_dat <- data[indices,]
+  	res.cox <- coxph(Surv(time, status) ~ age + sex + disease + frail , data = bs_dat)
+  	return(as.numeric(res.cox$coefficients["sex"]))
+}
+############Frail
+bs_fun_frail <- function(data, indices){
+	bs_dat <- data[indices,]
+  	res.cox <- coxph(Surv(time, status) ~ age + sex + disease + frail , data = bs_dat)
+  	return(as.numeric(res.cox$coefficients["frail"]))
+}
+
+###This function performs the bootstrap and displays the standard error to be used
+bs_res_age <- suppressWarnings(boot(kidney, bs_fun_age, R=10000))
+print(bs_res_age)
+##Repeat for other variables
+bs_res_sex <- suppressWarnings(boot(kidney, bs_fun_sex, R=10000))
+bs_res_frail <- suppressWarnings(boot(kidney, bs_fun_frail, R=10000))
+print(bs_res_sex)
+print(bs_res_frail)
+```
+Use the above bootstrap standard errors for our confidence interval for the "age" effect estimate and the bootstrap mean given alongside the standard error estimates.
+This leads us to the following confidence intervals through the above equation [ beta-est. +- 1.645*s.e.(beta-est.)
+Age: ()
+Sex: ()
+DiseaseGN: ()
+DiseaseAN: ()
+DiseasePKD: ()
+Frail: ()
+
+
 ii) If the R-program provides 90% confidence interval from either normal or chi-square
 approximation based on the large-sample theory, it would be worthwhile to compare
 the results against the ones given above to examine what R-program is doing.  
