@@ -181,6 +181,33 @@ It turns out that the LARS-Cox procedure is very useful in identifying genes exp
 Study:
 Based on standard Cox proportional hazard regression model, researchers often use different statistical method combined with the standard model to optimize the procedure and outcome of regression, which is based on practice of real-life data analysis and adequate statistical knowledges. In this way, it becomes possible to optimize a technical problem such as high-dimensionality and small-sample-size in real life application.
 
+Publication 3:
+Ping Wang, Yan Li, Chandan K. Reddy, 2017. Machine Learning for Survival Analysis: A Survey. ACM
+Comput. Surv. 1, 1, Article 1 (March 2017), 38 pages.
+DOI: 0000001.0000001
+http://dmkd.cs.vt.edu/papers/CSUR17.pdf
+
+Goal: 
+The primary goal of survival analysis is to predict the occurrence of specific events of interest at future time points. In this survey, they discussed several topics that are closely related to survival analysis and illustrate several successful applications in various real-world application domains. This paper provided a more thorough understanding of the recent advances in survival analysis and offer some guidelines on applying these approaches to solve new problems that arise in applications with censored data.
+
+Key ideas: 
+1. This article provided a comprehensive review of the conventional survival analysis methods and various machine learning methods for survival analysis, and described other related topics along with the evaluation metric. 
+
+2. Researches introduced the basic notations and concepts in survival analysis, including the structure of survival data and the common functions used in survival analysis. 
+
+3. Then, they introduced the well-studied statistical survival methods and the representative machine learning based survival methods. 
+
+4. Furthermore, they discussed the related topics in survival analysis, including data transformation, early prediction and complex events. 
+
+5. They also provided the implementation details of these survival methods and described the commonly used performance evaluation metrics for these models. 
+
+Study: 
+Due to the widespread availability of longitudinal data from various real-world domains combined with the recent developments in various machine learning methods, there is an increasing demand for understanding and improving methods for effectively handling survival data.
+
+Traditionally, statistical approaches have been widely developed in the literature to overcome this censoring issue. In addition, many machine learning algorithms are adapted to effectively handle survival data and tackle other challenging problems that arise in real-world data.
+
+Besides the traditional applications in healthcare and biomedicine, survival analysis was also successfully applied in various real-world problems, such as reliability, student retention and user behavior modeling. 
+
   
     
     
