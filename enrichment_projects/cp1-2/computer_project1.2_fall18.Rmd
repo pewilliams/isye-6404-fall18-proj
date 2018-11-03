@@ -129,14 +129,14 @@ CI. This is the so-called Percentile-Bootstrap-CI.
 iv) Apply the Bias Correction (BC) Method to obtain BC-Bootstrap-CI. See Section 15.3
 textbook for the details of the BC-method.  
 
-The Bias Correction bootstrap method is essentially an extension of the above percentile bootstrap method. A prominent issue in utilizing the percentile bootstrap method for confidence intervals is the fact that the estimate from the original data is not used (only the quantiles of the bootstrap) and skewness is not accounted for. The BC method calculates the confidence interval bounds through a formula that involves two factors: the bias factor and the acceleration factor (which measures the rate of change of the standard error of the bootstrap sample). This is called the BCa confidence interval, and it is a simple option to implement in R: 
+The Bias Correction bootstrap method is essentially an extension of the above percentile bootstrap method. A prominent issue in utilizing the percentile bootstrap method for confidence intervals is the fact that the estimate from the original data is not used (only the quantiles of the bootstrap) and skewness can often be unaccounted for when dealing with smaller samples of data. The BC method calculates the confidence interval bounds through a formula that involves two factors: the bias factor and the acceleration factor (which measures the rate of change of the standard error of the bootstrap sample). The bias factor is dependent on the proportion of estimates with values lower than the overall bootstrap estimate. Thus, when the calculated bias factor has a lower magnitude (closer to zero), our confidence interval is closer to simply becoming a percentile-method bootstrap as in (iii). When adjusted for these factors, we can calculate the BCa confidence interval, and it is a simple option to implement in R: 
 
 ```{r bootstrap_bca, include = T, echo = F, fig.align='center',fig.height=3}
 bs_ci_bca <- suppressWarnings(boot.ci(bs_res_age, conf = 0.90, var.t0 = NULL, type = "bca"))
 print(bs_ci_bca)
 ```
 
-As we can see with the BCa confidence interval, it is narrower compared to the calculation of part (i). It is slightly wider compared to the interval calculated using the "norm" type in R for normal approximation. 
+As we can see with the BCa confidence interval, it is narrower compared to the calculation of part (i). It is slightly wider compared to the interval calculated using the "norm" type in R for normal approximation. This may be attributed to the ability for bias correction methods to account for tails more effectively, widening the confidence interval slightly.  
 We must also keep in mind that despite these differing numbers, they are all indeed very similar to each other regardless. Different sets of data would be necessary to distinguish between methodologies through the R output. 
 
 v) A better way to construct the large-sample CI for situation in (iii) is to adjust the
