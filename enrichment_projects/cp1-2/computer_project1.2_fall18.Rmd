@@ -171,6 +171,8 @@ iii) If the distribution of the bootstrap samples of beta-estimate is not symmet
 normal, use 10000*0.05 = 500th lower and upper percentiles as the second largesample
 CI. This is the so-called Percentile-Bootstrap-CI.  
 
+****One thing to keep in mind when comparing percentile and "normal" bootstrap confidence intervals, they are formulated differently. The percentile bootstrap is dependent only upon the quantiles of the bootstrap samples, with no real "mean estimate" used or idea of the  shape of the distribution without further exploration through graphing/tabulation. With the normal assumption, one used the estimate mean as a center and the spread of the bootstrap estimates through standard error. In accounting for tails, the normal approximation interval will include a bias correction component, which may be why there is a difference between the calculations of confidence interval through R package implementation (boot.ci()) and hand calculation.
+
 iv) Apply the Bias Correction (BC) Method to obtain BC-Bootstrap-CI. See Section 15.3
 textbook for the details of the BC-method.  
 
