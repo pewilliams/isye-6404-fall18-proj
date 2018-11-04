@@ -1,7 +1,8 @@
 ---
 title: |
-  | \vspace{5cm} \LARGE{ISyE 6404 CP.1 Part II: PH Regression}
-  | \LARGE{Bootstrap \& Large p Small n Problems}
+  | \vspace{5cm} \LARGE{ISyE 6404 CP.1 Part II}
+  | \LARGE{Bootstrap Method: PH Regression \&}
+  | \LARGE{Large p Small n Problems}
 author:
 - Yuan Gao, Kevin Lee, Akshay Govindaraj, 
 - Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang
@@ -11,7 +12,7 @@ output:
    pdf_document:
       fig_caption: true
       number_sections: false
-mainfont: Times
+fontfamily: mathpazo
 fontsize: 11pt
 header-includes:
   - \usepackage{titling}
@@ -32,6 +33,8 @@ suppressPackageStartupMessages( library(survival))
 suppressPackageStartupMessages( library(survminer))
 suppressPackageStartupMessages( library(boot))
 suppressPackageStartupMessages( library(ggplot2))
+suppressPackageStartupMessages( library(parallel))
+suppressPackageStartupMessages( library(data.table))
 ```
 
 ## Workload Distribution
@@ -47,7 +50,7 @@ Yuan Gao & ...TBD \\
 Kevin Lee & ...TBD  \\ 
 Akshay Govindaraj & ...TBD  \\ 
 Yijun (Emma) Wan & ...TBD  \\ 
-Peter Williams & ...TBD  \\ 
+Peter Williams & Bootstrap Computation, Latex Formatting, Document Editing \\ 
 Ruixuan Zhang & ...TBD  \\ 
 \hline
 \end{tabular}
@@ -60,80 +63,144 @@ Ruixuan Zhang & ...TBD  \\
 Use the bootstrap method to construct a 90% pointwise confidence interval (CI) of betacoefficient(s)
 based on the PH-regression parameter-estimate(s). With the 10000
 bootstrap samples you have the entire distribution of beta-estimate(s). Thus, you can use
-the methods below to construct CIs.  
-i) Calculate standard error (denoted as s.e.(beta-est)) of a beta-estimate from the 1000
+the methods below to construct CIs.    
+i
+) Calculate standard error (denoted as s.e.(beta-est)) of a beta-estimate from the 1000
 bootstrapped beta-estimates. Use [ beta-est. +- 1.645*s.e.(beta-est.) ] as the largesample
 CI.  
 
+Use the above bootstrap standard errors for our confidence interval for the "age" effect estimate and the bootstrap mean given alongside the standard error estimates. This leads us to the following confidence intervals through the above equation [ beta-est. +- 1.645*s.e.(beta-est.):
+
 ```{r ph_bootstrap, include = T, echo = F, fig.align='center',fig.height=3}
-
-library(ggplot2)
-
-library(boot)
-library(survival)
 data("kidney")
+kidney <- data.table(kidney)
+#parallelize bootstrap to speed up compute
+B <- 1e04
 
+bs_res <- rbindlist(mclapply(1:B, function(b) {
+  pick_indices <- sample(1:nrow(kidney), size = nrow(kidney), replace = T)
+  bs_data <- kidney[pick_indices]
+  bs_mod <- coxph(Surv(time, status) ~ age + sex + frail , data = bs_data)
+  df_coef <- data.table(variable = names(bs_mod$coefficients) ,
+                         estimate = as.numeric(bs_mod$coefficients), 
+                         estimate_type = 'Beta',  stringsAsFactors = F)
+  df_se <- data.table(variable = names(bs_mod$coefficients) ,
+                         estimate = sqrt(diag(bs_mod$var)), 
+                         estimate_type = 'Standard Error',  stringsAsFactors = F)
+  return(rbindlist(list(df_coef, df_se)))
+}, mc.cores = 10))
 
-############Function for bootstrapping "Age"
-bs_fun_age <- function(data, indices){
-	bs_dat <- data[indices,]
-  	res.cox <- coxph(Surv(time, status) ~ age + sex + disease + frail , data = bs_dat)
-  	return(as.numeric(res.cox$coefficients["age"]))
-}
-############Sex
-bs_fun_sex <- function(data, indices){
-	bs_dat <- data[indices,]
-  	res.cox <- coxph(Surv(time, status) ~ age + sex + disease + frail , data = bs_dat)
-  	return(as.numeric(res.cox$coefficients["sex"]))
-}
-############Frail
-bs_fun_frail <- function(data, indices){
-	bs_dat <- data[indices,]
-  	res.cox <- coxph(Surv(time, status) ~ age + sex + disease + frail , data = bs_dat)
-  	return(as.numeric(res.cox$coefficients["frail"]))
-}
+#summarize bootstrap results
 
-###This function performs the bootstrap and displays the standard error to be used
-bs_res_age <- suppressWarnings(boot(kidney, bs_fun_age, R=10000))
-print(bs_res_age)
-##Repeat for other variables
-bs_res_sex <- suppressWarnings(boot(kidney, bs_fun_sex, R=10000))
-bs_res_frail <- suppressWarnings(boot(kidney, bs_fun_frail, R=10000))
-print(bs_res_sex)
-print(bs_res_frail)
+sum_res <- bs_res[ ,.(bs_mean = mean(estimate, na.rm=T)),.(variable,estimate_type)]
+se <- sum_res[estimate_type == 'Standard Error']$bs_mean
+sum_res <- sum_res[estimate_type == 'Beta']
+sum_res <- transform(sum_res, 
+                     std_err = paste0('[',round(bs_mean - 1.645*se,digits = 3),',',round(bs_mean + 1.645*se,digits = 3),']'),
+                     bs_mean = round(bs_mean, digits = 3),
+                     estimate_type = NULL)
+setnames(sum_res, names(sum_res), c('Variable','Estimate (Mean)','Std Error (1.645 * Mean SE)'))
+knitr::kable(sum_res,caption = 'PH Regression: Bootstrap Results (B = 10,000)',align = 'l')
 ```
-Use the above bootstrap standard errors for our confidence interval for the "age" effect estimate and the bootstrap mean given alongside the standard error estimates.
-This leads us to the following confidence intervals through the above equation [ beta-est. +- 1.645*s.e.(beta-est.)
-Age: ()
-Sex: ()
-DiseaseGN: ()
-DiseaseAN: ()
-DiseasePKD: ()
-Frail: ()
-
 
 ii) If the R-program provides 90% confidence interval from either normal or chi-square
 approximation based on the large-sample theory, it would be worthwhile to compare
 the results against the ones given above to examine what R-program is doing.  
 
-The R program boot.ci() does indeed have a function that allows us to create a 90% confidence interval from normal approximation, though 
+The R program boot.ci() does indeed have a function that allows us to create a 90% confidence interval from normal approximation: 
+
 ```{r bootstrap_norm, include = T, echo = F, fig.align='center',fig.height=3}
-bs_ci <- suppressWarnings(boot.ci(bs_res_age, conf = 0.90, var.t0 = NULL, type = "norm"))
-print(bs_ci)
+############Function for bootstrapping "Age"
+bs_fun_age <- function(data, indices){
+	bs_dat <- data[indices,]
+  	res.cox <- coxph(Surv(time, status) ~ age + sex + frail , data = bs_dat)
+  	return(c(as.numeric(res.cox$coefficients["age"])))
+}
+############Sex
+bs_fun_sex <- function(data, indices){
+	bs_dat <- data[indices,]
+  	res.cox <- coxph(Surv(time, status) ~ age + sex + frail , data = bs_dat)
+  	return(as.numeric(res.cox$coefficients["sex"]))
+}
+############Frail
+bs_fun_frail <- function(data, indices){
+	bs_dat <- data[indices,]
+  	res.cox <- coxph(Surv(time, status) ~ age + sex + frail , data = bs_dat)
+  	return(as.numeric(res.cox$coefficients["frail"]))
+}
+
+#boot objects
+bs_res_age <- suppressWarnings(boot(kidney, bs_fun_age, R=B,parallel = 'multicore',
+                                    ncpus = 10))
+bs_res_sex <- suppressWarnings(boot(kidney, bs_fun_sex, R=B, parallel = 'multicore',
+                                    ncpus=10))
+bs_res_frail <- suppressWarnings(boot(kidney, bs_fun_frail, R=B, parallel = 'multicore',
+                                      ncpus = 10))
+#ci results
+bs_ci_age <- suppressWarnings(boot.ci(bs_res_age, conf = 0.90, 
+                                      var.t0 = NULL, type = "norm", parallel = 'multicore',
+                                      ncpus = 10))
+
+bs_ci_sex <- suppressWarnings(boot.ci(bs_res_sex, conf = 0.90, var.t0 = NULL, type = "norm", 
+                                      parallel = 'multicore', ncpus = 10))
+
+bs_ci_frail <- suppressWarnings(boot.ci(bs_res_frail, conf = 0.90, var.t0 = NULL, type = "norm", 
+                                        parallel = 'multicore', ncpus = 10))
+
+# summarize and table it up
+get_upper_lower <- function(x){
+  upper = round(x$normal[2],digits = 3)
+  lower = round(x$normal[3], digits = 3)
+  return(paste0('[',upper,',',lower,']'))
+}
+
+comp_table <- data.frame(
+  variable = c('age','sex','frail'),
+  interval = c(get_upper_lower(bs_ci_age),get_upper_lower(bs_ci_sex),get_upper_lower(bs_ci_frail)),
+  interval_by_hand = sum_res[,3,with=F],
+  stringsAsFactors = F
+)
+# setnames(comp_table, names(comp_table), c('Variable', 'Interval: boot Package',
+#                                           'Interval: Hand Calculation'))
+# knitr::kable(comp_table,caption = 'Bootstrap Results Comparison (B = 10,000)',align = 'l')
 ```
+
 This gives us a confidence interval that is quite similar to the confidence interval calculated from part (i), though the "normal approximation" interval is slightly narrow compared to the confidence interval in (i). This leads one to believe there is another factor involved in the R program's interval calculation, as the 1.645 used in (i) is based off of normal approximations using z. 
 
 iii) If the distribution of the bootstrap samples of beta-estimate is not symmetric like
 normal, use 10000*0.05 = 500th lower and upper percentiles as the second largesample
 CI. This is the so-called Percentile-Bootstrap-CI.  
+
 iv) Apply the Bias Correction (BC) Method to obtain BC-Bootstrap-CI. See Section 15.3
 textbook for the details of the BC-method.  
 
-The Bias Correction bootstrap method is essentially an extension of the above percentile bootstrap method. A prominent issue in utilizing the percentile bootstrap method for confidence intervals is the fact that the estimate from the original data is not used (only the quantiles of the bootstrap) and skewness can often be unaccounted for when dealing with smaller samples of data. The BC method calculates the confidence interval bounds through a formula that involves two factors: the bias factor and the acceleration factor (which measures the rate of change of the standard error of the bootstrap sample). The bias factor is dependent on the proportion of estimates with values lower than the overall bootstrap estimate. Thus, when the calculated bias factor has a lower magnitude (closer to zero), our confidence interval is closer to simply becoming a percentile-method bootstrap as in (iii). When adjusted for these factors, we can calculate the BCa confidence interval, and it is a simple option to implement in R: 
+The Bias Correction bootstrap method is essentially an extension of the above percentile bootstrap method. A prominent issue in utilizing the percentile bootstrap method for confidence intervals is the fact that the estimate from the original data is not used (only the quantiles of the bootstrap) and skewness can often be unaccounted for when dealing with smaller samples of data. The BC method calculates the confidence interval bounds through a formula that involves two factors: the bias factor and the acceleration factor (which measures the rate of change of the standard error of the bootstrap sample). The bias factor is dependent on the proportion of estimates with values lower than the overall bootstrap estimate. Thus, when the calculated bias factor has a lower magnitude (closer to zero), our confidence interval is closer to simply becoming a percentile-method bootstrap as in (iii). When adjusted for these factors, we can calculate the BCa confidence interval, and it is a simple option to implement in R.   
+
+The following table summarizes results from our hand calculations, and both the 'Normal' approximation, along with the 'BCa' interval estimates:   
 
 ```{r bootstrap_bca, include = T, echo = F, fig.align='center',fig.height=3}
-bs_ci_bca <- suppressWarnings(boot.ci(bs_res_age, conf = 0.90, var.t0 = NULL, type = "bca"))
-print(bs_ci_bca)
+age_bca <- suppressWarnings(boot.ci(bs_res_age, conf = 0.90, var.t0 = NULL, type = "bca"))
+sex_bca <- suppressWarnings(boot.ci(bs_res_sex, conf = 0.90, var.t0 = NULL, type = "bca"))
+frail_bca <- suppressWarnings(boot.ci(bs_res_frail, conf = 0.90, var.t0 = NULL, type = "bca"))
+
+get_upper_lower_bca <- function(x){
+  upper = round(x$bca[4],digits = 3)
+  lower = round(x$bca[5], digits = 3)
+  return(paste0('[',upper,',',lower,']'))
+}
+
+bca_table <- data.frame(
+  variable = c('age','sex','frail'),
+  interval_bca = c(get_upper_lower_bca(age_bca),get_upper_lower_bca(sex_bca),get_upper_lower_bca(frail_bca)),
+  interval_norm = comp_table[,2],
+  interval_by_hand = sum_res[,3,with=F],
+  stringsAsFactors = F
+)
+
+#only need two tables
+setnames(bca_table, names(bca_table), c('Variable', 'Interval: boot (BCa)','Interval: boot (Norm)',
+                                          'Interval: Hand calc'))
+knitr::kable(bca_table,caption = 'Bootstrap Results Comparison (B = 10,000)',align = 'l')
 ```
 
 As we can see with the BCa confidence interval, it is narrower compared to the calculation of part (i). It is slightly wider compared to the interval calculated using the "norm" type in R for normal approximation. This may be attributed to the ability for bias correction methods to account for tails more effectively, widening the confidence interval slightly.  
@@ -150,78 +217,114 @@ Confidence Interval (HPD-CI) for a better version of this idea.
 
 ## 2. Large-p-Small-n Problems in PH-Regression (30%) 
 
-1) Search the Internet using the key words from the title given in Task #2.  
-2) Locate three publications with a section on real-life data analysis/example.  
-3) Briefly summarize (in an half-page report for one publication)  
-  i) what is the goal of the study,  
-  ii) key ideas in solving the problem, and  
-  iii) what do you learn from their real-life data study  
-Pulication 1: 
-Xu, R. (n.d.). Proportional Hazards Mixed Models: A Review with Applications to Twin Models.http://www.stat-d.si/mz/mz1.1/xu.pdf
+*Task: Search the Internet using the key words "Large-p-Small-n Problems", locate three publications with a section on real-life data analysis/example, and briefly summarize (in an half-page report for each publication):*  
+1) the goal of the study,  
+2) key ideas in solving the problem, and  
+3) what do you learn from their real-life study  
+
+### Publication 1: Proportional Hazards Mixed Models 
+
+*Title:* Proportional Hazards Mixed Models: A Review with Applications to Twin Models    
+*Authors:* Xu, R    
+*Publication:* Metodoloski Zevski (January 2004)   
+*Link:* http://www.stat-d.si/mz/mz1.1/xu.pdf  
+
 Goal: used the twin pairs consisting of monozygotic and dizygotic twins to implement Proportional Hazards Mixed Models (PHMM) for mixed effects models with right-censored data. 
-Key ideas:
-1.	added random effects (Normal distribution) to traditional PH model which enable covariate by cluster interactions.
-2.	took log, the model is written in the equivalent form of a linear transformation model.
-3.	decomposed the variation in the transformed event time, into contributions from the fixed covariate effects, the random effects, and a fixed error distribution.
-4.	used EM algorithm to find the estimators where the M-step implementation was similar to the standard Cox model, and the E-step involved Markov Chain Monte Carlo (MCMC) to approximate the conditional distribution of the random effects given data.
-Study: standard cox model is just a beginning. Faced with the real world problem and data, there is more complex relationships. We need to capture mixed, or cluster specific, covariate effects. So, when we study the statistical methods we need to understanding the assumptions, mathematical procedure, results and applications. As a result, we can easily combine methods to analysis the real world problem. 
+Key ideas:    
+1.	added random effects (Normal distribution) to traditional PH model which enable covariate by cluster interactions.  
+2.	took log, the model is written in the equivalent form of a linear transformation model.    
+3.	decomposed the variation in the transformed event time, into contributions from the fixed covariate effects, the random effects, and a fixed error distribution.    
+4.	used EM algorithm to find the estimators where the M-step implementation was similar to the standard Cox model, and the E-step involved Markov Chain Monte Carlo (MCMC) to approximate the conditional distribution of the random effects given data.  
 
+Study: The standard cox model is just a beginning. Faced with the real world problem and data, there is more complex relationships. We need to capture mixed, or cluster specific, covariate effects. So, when we study the statistical methods we need to understanding the assumptions, mathematical procedure, results and applications. As a result, we can easily combine methods to analysis the real world problem.   
 
-Publication 2: 
-J Gui, H Li, Penalized Cox regression analysis in the high- dimensional and low-sample size settings, with application to microarray gene expression data, Bioinformatics, Volume 21, Issue 13, 1 July 2005, Pages 3001–3008, https://academic.oup.com/bioinformatics/article/21/13/3001/196819
+### Publication 2: Penalized Cox Regression Analysis 
+
+*Title:* Penalized Cox regression analysis in the high- dimensional and low-sample size settings, with application to microarray gene expression data      
+*Authors:* J Gui, H Li       
+*Publication:* Bioinformatics, Volume 21, Issue 13, 1 July 2005      
+*Link:* https://academic.oup.com/bioinformatics/article/21/13/3001/196819     
 
 Goal: Find a model with good prediction accuracy and parsimony property to predict the classified outcome of different types of cancer using gene expression profiles of the cancerous cells as predictors under restriction of high-dimensionality and low-sample-size.
 
-Key ideas in solving the problem:
+Key ideas in solving the problem:  
 
-The article use statistical method mainly including Cox proportional hazard regression model and Lasso estimation to conduct a LARS-Cox procedure which is based on LARS algorithm.
-
-1.	Collect data about micro array gene expression and categorical outcome.
-
-2.	Use Cox PH regression model to build up log-partial-likelihood function with respect to coefficients $\beta$ of gene expression signatures.
-
-3.	Use Lasso estimate for estimating $\beta$ subject to the summation of parameters $\beta$’s is less than a tuning parameter s that determine how many covariates with coefficients are zero.
-
-4.	Minimize the Cross-validated partial likelihood to choose the best value of tuning parameter s.
-
-5.	Minimize a specific expansion of PH likelihood function (constructed through one-term Taylor Series) using iterative method and find the estimate of $\beta$ with smallest variance.
-
+The article use statistical method mainly including Cox proportional hazard regression model and Lasso estimation to conduct a LARS-Cox procedure which is based on LARS algorithm.  
+1.	Collect data about micro array gene expression and categorical outcome.  
+2.	Use Cox PH regression model to build up log-partial-likelihood function with respect to coefficients $\beta$ of gene expression signatures.  
+3.	Use Lasso estimate for estimating $\beta$ subject to the summation of parameters $\beta$’s is less than a tuning parameter s that determine how many covariates with coefficients are zero.  
+4.	Minimize the Cross-validated partial likelihood to choose the best value of tuning parameter s.  
+5.	Minimize a specific expansion of PH likelihood function (constructed through one-term Taylor Series) using iterative method and find the estimate of $\beta$ with smallest variance.  
 6.	Select gene expression profiles using the LARS-Cox produce and compare the prediction results with other methods.
 It turns out that the LARS-Cox procedure is very useful in identifying genes expressions, building a parsimonious predictive model and classifying patients into relevantly higher-risk and lower-risk groups.
 
 Study:
 Based on standard Cox proportional hazard regression model, researchers often use different statistical method combined with the standard model to optimize the procedure and outcome of regression, which is based on practice of real-life data analysis and adequate statistical knowledges. In this way, it becomes possible to optimize a technical problem such as high-dimensionality and small-sample-size in real life application.
 
-Publication 3:
-Ping Wang, Yan Li, Chandan K. Reddy, 2017. Machine Learning for Survival Analysis: A Survey. ACM
-Comput. Surv. 1, 1, Article 1 (March 2017), 38 pages.
-DOI: 0000001.0000001
-http://dmkd.cs.vt.edu/papers/CSUR17.pdf
+### Publication 3: Machine Learning for Survival Analysis
+
+*Title:* Machine Learning for Survival Analysis: A Survey.       
+*Authors:* Ping Wang, Yan Li, Chandan K. Reddy     
+*Publication:* ACM Comput. Surv. 1, 1, Article 1 (March 2017)       
+*Link:* http://dmkd.cs.vt.edu/papers/CSUR17.pdf    
 
 Goal: 
 The primary goal of survival analysis is to predict the occurrence of specific events of interest at future time points. In this survey, they discussed several topics that are closely related to survival analysis and illustrate several successful applications in various real-world application domains. This paper provided a more thorough understanding of the recent advances in survival analysis and offer some guidelines on applying these approaches to solve new problems that arise in applications with censored data.
 
-Key ideas: 
-1. This article provided a comprehensive review of the conventional survival analysis methods and various machine learning methods for survival analysis, and described other related topics along with the evaluation metric. 
-
-2. Researches introduced the basic notations and concepts in survival analysis, including the structure of survival data and the common functions used in survival analysis. 
-
-3. Then, they introduced the well-studied statistical survival methods and the representative machine learning based survival methods. 
-
-4. Furthermore, they discussed the related topics in survival analysis, including data transformation, early prediction and complex events. 
-
-5. They also provided the implementation details of these survival methods and described the commonly used performance evaluation metrics for these models. 
+Key ideas:   
+1. This article provided a comprehensive review of the conventional survival analysis methods and various machine learning methods for survival analysis, and described other related topics along with the evaluation metric.    
+2. Researches introduced the basic notations and concepts in survival analysis, including the structure of survival data and the common functions used in survival analysis.    
+3. Then, they introduced the well-studied statistical survival methods and the representative machine learning based survival methods.   
+4. Furthermore, they discussed the related topics in survival analysis, including data transformation, early prediction and complex events.    
+5. They also provided the implementation details of these survival methods and described the commonly used performance evaluation metrics for these models.    
 
 Study: 
-Due to the widespread availability of longitudinal data from various real-world domains combined with the recent developments in various machine learning methods, there is an increasing demand for understanding and improving methods for effectively handling survival data.
-
-Traditionally, statistical approaches have been widely developed in the literature to overcome this censoring issue. In addition, many machine learning algorithms are adapted to effectively handle survival data and tackle other challenging problems that arise in real-world data.
-
+Due to the widespread availability of longitudinal data from various real-world domains combined with the recent developments in various machine learning methods, there is an increasing demand for understanding and improving methods for effectively handling survival data.  
+Traditionally, statistical approaches have been widely developed in the literature to overcome this censoring issue. In addition, many machine learning algorithms are adapted to effectively handle survival data and tackle other challenging problems that arise in real-world data.  
 Besides the traditional applications in healthcare and biomedicine, survival analysis was also successfully applied in various real-world problems, such as reliability, student retention and user behavior modeling. 
 
-  
-    
-    
+\newpage
+
+## Code Appendix
+
+##### Routine: CPU Parallelized Bootstrap for PH Regression, Hand Calculations
+Details on CPU distributed boostrap routine relying on *parallel* and *data.table* libraries:  
+
+```{r include = T, echo = T}
+suppressPackageStartupMessages( library(parallel))
+suppressPackageStartupMessages( library(data.table))
+data("kidney")
+kidney <- data.table(kidney)
+#parallelize bootstrap to speed up compute
+B <- 1e04
+
+bs_res <- rbindlist(mclapply(1:B, function(b) {
+  pick_indices <- sample(1:nrow(kidney), size = nrow(kidney), replace = T)
+  bs_data <- kidney[pick_indices]
+  bs_mod <- coxph(Surv(time, status) ~ age + sex + disease + frail , 
+                  data = bs_data)
+  df_coef <- data.table(variable = names(bs_mod$coefficients) ,
+                         estimate = as.numeric(bs_mod$coefficients), 
+                         estimate_type = 'Beta',  stringsAsFactors = F)
+  df_se <- data.table(variable = names(bs_mod$coefficients) ,
+                         estimate = sqrt(diag(bs_mod$var)), 
+                         estimate_type = 'Standard Error',  
+                      stringsAsFactors = F)
+  return(rbindlist(list(df_coef, df_se)))
+}, mc.cores = 10))
+
+#summarize bootstrap results
+sum_res <- bs_res[ ,.(bs_mean = mean(estimate, na.rm=T)),.(variable,estimate_type)]
+se <- sum_res[estimate_type == 'Standard Error']$bs_mean
+sum_res <- sum_res[estimate_type == 'Beta']
+sum_res <- transform(sum_res, 
+              std_err = paste0('[',round(bs_mean + 1.645*se,digits = 3),',',
+                                      round(bs_mean - 1.645*se,digits = 3),']'),
+              bs_mean = round(bs_mean, digits = 3),
+              estimate_type = NULL)
+setnames(sum_res, names(sum_res), 
+         c('Variable','Estimate (Mean)','Std Error (1.645 * Mean SE)'))
+```
 *Questions?*  
 *Contact: ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu*
 
