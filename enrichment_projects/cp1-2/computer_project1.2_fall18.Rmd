@@ -47,7 +47,7 @@ Below is a description of tasks completed by each team member for this project:
 Team Member & Task Description  \\
 \hline
 Yuan Gao & ...TBD \\ 
-Kevin Lee & ...TBD  \\ 
+Kevin Lee & Contribute to Bootstrap CI (1.645, norm, bca)  \\ 
 Akshay Govindaraj & ...TBD  \\ 
 Yijun (Emma) Wan & ...TBD  \\ 
 Peter Williams & Bootstrap Computation, Latex Formatting, Document Editing \\ 
@@ -69,7 +69,7 @@ i
 bootstrapped beta-estimates. Use [ beta-est. +- 1.645*s.e.(beta-est.) ] as the largesample
 CI.  
 
-Use the above bootstrap standard errors for our confidence interval for the "age" effect estimate and the bootstrap mean given alongside the standard error estimates. This leads us to the following confidence intervals through the above equation [ beta-est. +- 1.645*s.e.(beta-est.):
+Use the bootstrap standard errors for our confidence interval for the "age" effect estimate and the bootstrap mean given alongside the standard error estimates. This leads us to the following confidence intervals through the above equation [ beta-est. +- 1.645*s.e.(beta-est.):
 
 ```{r ph_bootstrap, include = T, echo = F, fig.align='center',fig.height=3}
 data("kidney")
@@ -204,7 +204,7 @@ knitr::kable(bca_table,caption = 'Bootstrap Results Comparison (B = 10,000)',ali
 ```
 
 As we can see with the BCa confidence interval, it is narrower compared to the calculation of part (i). It is slightly wider compared to the interval calculated using the "norm" type in R for normal approximation. This may be attributed to the ability for bias correction methods to account for tails more effectively, widening the confidence interval slightly.  
-We must also keep in mind that despite these differing numbers, they are all indeed very similar to each other regardless. Different sets of data would be necessary to distinguish between methodologies through the R output. 
+We must also keep in mind that despite these differing numbers, they are all indeed very similar to each other regardless. Each variable's confidence interval shows the same "effect" (e.g. variables with confidence intervals that were non-inclusive of 0 had the same quality for the other calculated confidence intervals). 
 
 v) A better way to construct the large-sample CI for situation in (iii) is to adjust the
 percentiles in two tails for having 100 bootstrap samples in total. That is, use a trialand-error
