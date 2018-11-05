@@ -98,7 +98,7 @@ sum_res <- transform(sum_res,
                      bs_mean = round(bs_mean, digits = 3),
                      estimate_type = NULL)
 setnames(sum_res, names(sum_res), c('Variable','Estimate (Mean)','Std Error (1.645 * Mean SE)'))
-knitr::kable(sum_res,caption = 'PH Regression: Bootstrap Results (B = 10,000)',align = 'l')
+knitr::kable(sum_res,caption = 'PH Regression: Bootstrap Results (B = 10,000)',align = 'c')
 ```
 
 ii) If the R-program provides 90% confidence interval from either normal or chi-square
@@ -160,7 +160,7 @@ comp_table <- data.frame(
 )
 # setnames(comp_table, names(comp_table), c('Variable', 'Interval: boot Package',
 #                                           'Interval: Hand Calculation'))
-# knitr::kable(comp_table,caption = 'Bootstrap Results Comparison (B = 10,000)',align = 'l')
+# knitr::kable(comp_table,caption = 'Bootstrap Results Comparison (B = 10,000)',align = 'c')
 ```
 
 This gives us a confidence interval that is quite similar to the confidence interval calculated from part (i), though the "normal approximation" interval is slightly narrow compared to the confidence interval in (i). This leads one to believe there is another factor involved in the R program's interval calculation, as the 1.645 used in (i) is based off of normal approximations using z. 
@@ -194,18 +194,24 @@ get_upper_lower_bca <- function(x){
   return(paste0('[',upper,',',lower,']'))
 }
 
+bs_beta_est <- bs_res[estimate_type == 'Beta']
+beta_list <- split(bs_beta_est, bs_beta_est$variable)
+perc_res <- lapply(beta_list, function(x){
+  paste0('[',round(quantile(x$estimate, probs = 0.05), digits = 3),',',round(quantile(x$estimate, probs = 0.95), digits = 3),']')
+})
+
 bca_table <- data.frame(
   variable = c('age','sex','frail'),
   interval_bca = c(get_upper_lower_bca(age_bca),get_upper_lower_bca(sex_bca),get_upper_lower_bca(frail_bca)),
   interval_norm = comp_table[,2],
   interval_by_hand = sum_res[,3,with=F],
-  interval_hand_perc = c('[*TBD,TBD*]','[*TBD,TBD*]','[*TBD,TBD*]'),
+  interval_hand_perc = c(perc_res$age, perc_res$sex, perc_res$frail),
   stringsAsFactors = F)
 
 #only need two tables
 setnames(bca_table, names(bca_table), c('Variable', 'boot (BCa)','boot (Normal)',
                                           'Hand calc (Normal)', 'Hand calc (Percentile)'))
-knitr::kable(bca_table,caption = 'Bootstrap Results Comparison (B = 10,000)',align = 'l')
+knitr::kable(bca_table,caption = 'Bootstrap Results Comparison (B = 10,000)',align = 'c')
 ```
 
 As we can see with the BCa confidence interval, it is narrower compared to the calculation of part (i). It is slightly wider compared to the interval calculated using the "norm" type in R for normal approximation. This may be attributed to the ability for bias correction methods to account for tails more effectively, widening the confidence interval slightly.  
