@@ -101,6 +101,8 @@ setnames(sum_res, names(sum_res), c('Variable','Estimate (Mean)','Std Error (1.6
 knitr::kable(sum_res,caption = 'PH Regression: Bootstrap Results (B = 10,000)',align = 'c')
 ```
 
+The Proportional Hazards regression model works best for covariates that are not a function of time because the exponential distribution is 'memoryless'. As seen from the above results, age doesn't make a good variable in the proportional hazards model since age changes with time. We would expect the coefficient to be negative for infants and positive for aging populations, but since the sample population includes a diverse age group, the coefficient is nearly zero.
+
 ii) If the R-program provides 90% confidence interval from either normal or chi-square
 approximation based on the large-sample theory, it would be worthwhile to compare
 the results against the ones given above to examine what R-program is doing.  
