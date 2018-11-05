@@ -280,7 +280,7 @@ Based on standard Cox proportional hazard regression model, researchers often us
 *Link:* http://dmkd.cs.vt.edu/papers/CSUR17.pdf    
 
 Goal: 
-The primary goal of survival analysis is to predict the occurrence of specific events of interest at future time points. In this survey, they discussed several topics that are closely related to survival analysis and illustrate several successful applications in various real-world application domains. This paper provided a more thorough understanding of the recent advances in survival analysis and offer some guidelines on applying these approaches to solve new problems that arise in applications with censored data.
+The primary goal of survival analysis is to predict the occurrence of specific events of interest at future time points. In this survey, the authors have discussed several topics that are closely related to survival analysis and illustrate several successful applications in various real-world application domains. This paper provided a more thorough understanding of the recent advances in survival analysis and offer some guidelines on applying these approaches to solve new problems that arise in applications with censored data.
 
 Key ideas:   
 1. This article provided a comprehensive review of the conventional survival analysis methods and various machine learning methods for survival analysis, and described other related topics along with the evaluation metric.    
