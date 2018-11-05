@@ -46,12 +46,12 @@ Below is a description of tasks completed by each team member for this project:
 \hline
 Team Member & Task Description  \\
 \hline
-Yuan Gao & ...TBD \\ 
+Yuan Gao & ...Publication 1 Summary \\ 
 Kevin Lee & Contribute to Bootstrap CI (1.645, norm, bca)  \\ 
 Akshay Govindaraj & ...TBD  \\ 
-Yijun (Emma) Wan & ...TBD  \\ 
+Yijun (Emma) Wan & ...Publication 3 Summary  \\ 
 Peter Williams & Bootstrap Computation, Latex Formatting, Document Editing \\ 
-Ruixuan Zhang & ...TBD  \\ 
+Ruixuan Zhang & ...Publication 2 Summary  \\ 
 \hline
 \end{tabular}
 \end{center}
