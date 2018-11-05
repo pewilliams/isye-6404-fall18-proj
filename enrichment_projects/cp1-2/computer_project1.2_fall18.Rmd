@@ -46,12 +46,21 @@ Below is a description of tasks completed by each team member for this project:
 \hline
 Team Member & Task Description  \\
 \hline
+<<<<<<< HEAD
 Yuan Gao & ...TBD \\ 
 Kevin Lee & Contribute to Bootstrap CI (1.645, norm, bca)  \\ 
 Akshay Govindaraj & ...TBD  \\ 
 Yijun (Emma) Wan & ...TBD  \\ 
 Peter Williams & Bootstrap Computation, Latex Formatting, Document Editing \\ 
 Ruixuan Zhang & ...TBD  \\ 
+=======
+Yuan Gao & ...Publication 1 Summary \\ 
+Kevin Lee & Contribute to Bootstrap CI (1.645, norm, bca)  \\ 
+Akshay Govindaraj & ...TBD  \\ 
+Yijun (Emma) Wan & ...Publication 3 Summary  \\ 
+Peter Williams & Bootstrap Computation, Latex Formatting, Document Editing \\ 
+Ruixuan Zhang & ...Publication 2 Summary  \\ 
+>>>>>>> 8db6a44772aabe6cc541245d4919362f39dc444a
 \hline
 \end{tabular}
 \end{center}
@@ -160,9 +169,15 @@ comp_table <- data.frame(
   interval_by_hand = sum_res[,3,with=F],
   stringsAsFactors = F
 )
+<<<<<<< HEAD
 setnames(comp_table, names(comp_table), c('Variable', 'Interval: boot Package',
                                            'Interval: Hand Calculation'))
 knitr::kable(comp_table,caption = 'Bootstrap Results Comparison (B = 10,000)',align = 'c')
+=======
+# setnames(comp_table, names(comp_table), c('Variable', 'Interval: boot Package',
+#                                           'Interval: Hand Calculation'))
+# knitr::kable(comp_table,caption = 'Bootstrap Results Comparison (B = 10,000)',align = 'c')
+>>>>>>> 8db6a44772aabe6cc541245d4919362f39dc444a
 ```
 
 This gives us a confidence interval that is quite similar to the confidence interval calculated from part (i), though the "normal approximation" interval is slightly narrow compared to the confidence interval in (i). This leads one to believe there is another factor involved in the R program's interval calculation, as the 1.645 used in (i) is based off of normal approximations using z. 
