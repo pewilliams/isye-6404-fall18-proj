@@ -64,8 +64,7 @@ Use the bootstrap method to construct a 90% pointwise confidence interval (CI) o
 based on the PH-regression parameter-estimate(s). With the 10000
 bootstrap samples you have the entire distribution of beta-estimate(s). Thus, you can use
 the methods below to construct CIs.    
-i
-) Calculate standard error (denoted as s.e.(beta-est)) of a beta-estimate from the 1000
+i) Calculate standard error (denoted as s.e.(beta-est)) of a beta-estimate from the 1000
 bootstrapped beta-estimates. Use [ beta-est. +- 1.645*s.e.(beta-est.) ] as the largesample
 CI.  
 
@@ -91,7 +90,6 @@ bs_res <- rbindlist(mclapply(1:B, function(b) {
 }, mc.cores = 10))
 
 #summarize bootstrap results
-
 sum_res <- bs_res[ ,.(bs_mean = mean(estimate, na.rm=T)),.(variable,estimate_type)]
 se <- sum_res[estimate_type == 'Standard Error']$bs_mean
 sum_res <- sum_res[estimate_type == 'Beta']
@@ -167,11 +165,16 @@ comp_table <- data.frame(
 
 This gives us a confidence interval that is quite similar to the confidence interval calculated from part (i), though the "normal approximation" interval is slightly narrow compared to the confidence interval in (i). This leads one to believe there is another factor involved in the R program's interval calculation, as the 1.645 used in (i) is based off of normal approximations using z. 
 
-iii) If the distribution of the bootstrap samples of beta-estimate is not symmetric like
-normal, use 10000*0.05 = 500th lower and upper percentiles as the second largesample
-CI. This is the so-called Percentile-Bootstrap-CI.  
+iii) If the distribution of the bootstrap samples of beta-estimate is not symmetric likenormal, use 10000*0.05 = 500th lower and upper percentiles as the second large sample CI. This is the so-called Percentile-Bootstrap-CI.  
 
-****One thing to keep in mind when comparing percentile and "normal" bootstrap confidence intervals, they are formulated differently. The percentile bootstrap is dependent only upon the quantiles of the bootstrap samples, with no real "mean estimate" used or idea of the  shape of the distribution without further exploration through graphing/tabulation. With the normal assumption, one used the estimate mean as a center and the spread of the bootstrap estimates through standard error. In accounting for tails, the normal approximation interval will include a bias correction component, which may be why there is a difference between the calculations of confidence interval through R package implementation (boot.ci()) and hand calculation.
+A quick visualization of the bootstrap estimates, indicates approximate symmetry for the age effect estimates, but the sex and frail effect estimates are clearly not symmetric:   
+
+```{r symn_perc, include=T, echo= F, fig.align='center',fig.height=5}
+ggplot(bs_res[estimate_type == 'Beta'], aes(x = estimate, fill = variable) ) + geom_density() + theme_minimal() + facet_wrap(~variable,scales = 'free',nrow=3) + ggtitle('Bootstrap Estimates: Variable | Beta Estimate ')
+
+```
+
+The percentile and "normal" bootstrap confidence intervals are formulated differently. The percentile bootstrap is dependent only upon the quantiles of the bootstrap samples, with no real "mean estimate" used or idea of the  shape of the distribution without further exploration through graphing/tabulation. With the normal assumption, one used the estimate mean as a center and the spread of the bootstrap estimates through standard error. In accounting for tails, the normal approximation interval will include a bias correction component, which may be why there is a difference between the calculations of confidence interval through R package implementation (boot.ci()) and hand calculation.
 
 iv) Apply the Bias Correction (BC) Method to obtain BC-Bootstrap-CI. See Section 15.3
 textbook for the details of the BC-method.  
@@ -196,12 +199,12 @@ bca_table <- data.frame(
   interval_bca = c(get_upper_lower_bca(age_bca),get_upper_lower_bca(sex_bca),get_upper_lower_bca(frail_bca)),
   interval_norm = comp_table[,2],
   interval_by_hand = sum_res[,3,with=F],
-  stringsAsFactors = F
-)
+  interval_hand_perc = c('[*TBD,TBD*]','[*TBD,TBD*]','[*TBD,TBD*]'),
+  stringsAsFactors = F)
 
 #only need two tables
-setnames(bca_table, names(bca_table), c('Variable', 'Interval: boot (BCa)','Interval: boot (Norm)',
-                                          'Interval: Hand calc'))
+setnames(bca_table, names(bca_table), c('Variable', 'boot (BCa)','boot (Normal)',
+                                          'Hand calc (Normal)', 'Hand calc (Percentile)'))
 knitr::kable(bca_table,caption = 'Bootstrap Results Comparison (B = 10,000)',align = 'l')
 ```
 
