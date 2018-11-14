@@ -1,14 +1,25 @@
 ---
-title: "(EP-2): K-M Estimation, Kernel Regression and Spline"
+title: |
+  | \vspace{5cm} \LARGE{(EP-2): K-M Estimation, Kernel Regression and Spline}
 author:
-- Yuan Gao, Kevin Lee, Akshay Govindaraj
+- Yuan Gao, Kevin Lee, Akshay Govindaraj, 
 - Yijun (Emma) Wan, Peter Williams, Ruixuan Zhang
-- ygao390, kylee20, ywan40, agovindaraj6, pwilliams60, rzhang438 | @gatech.edu
-date: '2018-10-22'
+
+date: "`r paste0('Date: ',Sys.Date())`"
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: '2'
+   pdf_document:
+      fig_caption: true
+      number_sections: false
+fontfamily: mathpazo
+fontsize: 11pt
+header-includes:
+  - \usepackage{titling}
+  - \pretitle{\begin{flushleft}}
+  - \posttitle{\end{flushleft}}
+  - \preauthor{\begin{flushleft}}
+  - \postauthor{\end{flushleft}}
+  - \predate{\begin{flushleft}}
+  - \postdate{\end{flushleft}}
 ---
 
 ```{r setup, include=FALSE}
