@@ -1,6 +1,6 @@
 library(np)
-
-hdat <- read.csv('data/heart_transplant.csv',header=T,stringsAsFactors=F)
+library(survival)
+hdat <- read.csv('enrichment_projects/ep2/data/heart_transplant.csv',header=T,stringsAsFactors=F)
 
 km_fit <- survfit(Surv(time = Days, event = Status) ~ 1, data = hdat, 
                   type = 'kaplan-meier') #only one group of patients
@@ -22,7 +22,7 @@ s_error = summary(km_fit)$std.err
 CI_lower = km_fit$surv - 1.645*km_fit$std.err
 CI_upper = km_fit$surv + 1.645*km_fit$std.err
 
-km_dat <- data.frame(time=km_fit$time,
+km_dat1 <- data.frame(time=km_fit$time,
                       survival=km_fit$surv,
                       upper_ci = CI_upper, 
                       lower_ci = CI_lower)
@@ -44,11 +44,13 @@ km_est_boot <- function(data, indices){
                     type = 'kaplan-meier') #only one group of patients
   km_datbs <- data.frame(time=km_fitbs$time,
                          survival=km_fitbs$surv) #model results
-  return(km_datbs[35,1])
+  return(median(km_datbs$survival))
 ### INCOMPLETE
 }
-
+library(boot)
 B <- 1e04
-bs_CI <- suppressWarnings(boot(hdat, km_est_boot, R=B,parallel = 'multicore',
-                                    ncpus = 10))
-plot(bs_CI)
+bs_CI <- boot(hdat, km_est_boot, R=B,parallel = 'multicore',
+                                    ncpus = 10)
+#plot(bs_CI)
+
+boot.ci(boot.out = bs_CI,type = 'bca')
