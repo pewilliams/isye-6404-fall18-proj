@@ -43,7 +43,7 @@ Workload and description of tasks and the distribution of work (%) by team membe
 Team Member & Task Description  \\
 \hline
 Yuan Gao & TBD \\ 
-Kevin Lee & TDB  \\ 
+Kevin Lee & Loess, Smoothing Splines, Part of Regression Comparison  \\ 
 Akshay Govindaraj & TBD  \\ 
 Yijun (Emma) Wan & TBD  \\ 
 Peter Williams & TBD \\ 
@@ -194,7 +194,7 @@ plot(Mortality~Education)
 spline.mortality=smooth.spline(Education,Mortality)
 lines(spline.mortality, col="purple", lwd=2)
 ```
-We can see that using a smoothing spline gives us a relatively linear line with small bumps along it. One thing to notice with the usage of the spline function in R is the ease with which one can apply the method through programs (e.g. R). With the spline function, we can see a fairly clear decreasing linear relationship between the two variables. This makes sense considering the spread of the original data on a scatterplot, but this also falls in line with the loess smoothing used prior. They both show a generally decreasing relationship between the response and predictor variables, but the varying spans in the loess function allow one to control the minute details within the data's distribution one might want to account for. 
+We can see that using a smoothing spline gives us a relatively linear line with small bumps along it. One thing to notice with the usage of the spline function in R is the ease with which one can apply the method through programs (e.g. R). With the spline function, we can see a fairly clear decreasing linear relationship between the two variables. This makes sense considering the spread of the original data on a scatterplot, but this also falls in line with the loess smoothing used prior. They both show a generally decreasing relationship between the response and predictor variables, but the varying spans in the loess function allow one to control the minute details within the data's distribution one might want to account for. Also, the smooth.spline() function in 'R' is, similarly to usage in interpolating splines, defined through the use of a cubic spline in representing the fit of the model on the data.
 
 Comparison for above Kernel Estimators:
 1) the Nadaraya-Watson kernel estimator suffers from  bias, both at the boundaries due to the one-sided neighborhoods and in the interior when the xi’s are not uniformly distributed. The reason is that in local constant modeling more or less the same points are used to estimate the curve near the boundary. 
