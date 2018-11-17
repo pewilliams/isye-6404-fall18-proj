@@ -242,9 +242,10 @@ Comparison for Kernel Estimators, Nearest neighbor methods and spline regression
 *Compare the above four methods with a leave-one-out cross-validation procedure.*  
 
 ## 4. Resampling Procedures: Bootstrap and Jackknife (25%):
-1) *Select an input $x_0$ in the [min(x-data), max(x-data)].*  
-2) *Use all four regression models built in Task #2 to make point-predictions of $Y$ at $x_0$.*  
-3) *Use both bootstrap ($B = 1000$) and jackknife resampling procedures to find a 90% pointwise confidence interval (CI) for the point-prediction. If the resampled distribution of the point-prediction is symmetric, use 5% in each tail to find the CI-bounds. If the distribution is not symmetric, use the HPD-interval idea to find the CI-bound. Compare the results from four regression methods.*  
+i)    Exercise the FIVE versions of CIs stated in CP-1 for the survival function S(x) give in 1) above. Compare these CIs. Moreover, focus on the MEDIAN (50th percentile), and evaluate the histogram of the bootstrap-estimates, bootstrap-bias and -standard-error. Comment about the computational results.
+
+ii)  Describe how to apply the bootstrap procedures to kernel regression for constructing pointwise CIs for the kernel regression function. You do not need to compute.
+
 
 # Code Appendix
 
