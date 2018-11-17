@@ -10,7 +10,7 @@ output:
    pdf_document:
       fig_caption: true
       number_sections: false
-fontfamily: mathpazo
+fontfamily: helvet
 fontsize: 11pt
 header-includes:
   - \usepackage{titling}
@@ -22,6 +22,9 @@ header-includes:
   - \postdate{\end{flushleft}}
 ---
 
+\newpage
+\tableofcontents
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(ggplot2))
@@ -30,12 +33,11 @@ suppressPackageStartupMessages(library(survival))
 suppressPackageStartupMessages(library(np))
 suppressPackageStartupMessages(library(locfit))
 suppressPackageStartupMessages(library(stats))
+suppressPackageStartupMessages(library(km.ci))
 ```
 
-\newpage
-
-## Workload Distribution  
-Workload and description of tasks and the distribution of work (%) by team member for this project:  
+# Workload Distribution  
+Workload and description of tasks completed by each team member for this project:  
 
 \begin{center}
 \begin{tabular}{ |l|l| } 
@@ -46,7 +48,7 @@ Yuan Gao & TBD \\
 Kevin Lee & Loess, Smoothing Splines, Part of Regression Comparison  \\ 
 Akshay Govindaraj & TBD  \\ 
 Yijun (Emma) Wan & TBD  \\ 
-Peter Williams & TBD \\ 
+Peter Williams & Code Compilation, Data Visualization \& Latex Formatting \\ 
 Ruixuan Zhang & TBD \\ 
 \hline
 \end{tabular}
@@ -54,16 +56,16 @@ Ruixuan Zhang & TBD \\
 
 \newpage
 
-## 1. K-M Estimation (25%):
-*Locate a data set with right-censoring (in Type-I Censoring) in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the K-M Estimator to estimate the survival function with pointwise confidence intervals.*  
+# Problems
 
-For this exercise, we located a dataset, that consists of measures on 69 different patients who received a heart transplant, taken from the first edition of the text *The Statistical Analysis of Failure Time Data* by Kalbfleisch and Prentice, Appendix I (230-232), published originally in 1980, which can also be found via the following link on the Carnegie Mellon statistics site: http://lib.stat.cmu.edu/datasets/stanford, and has three columns with the following measures:  
+## 1. K-M Estimation (25%):
+*Locate a data set with right-censoring (in Type-I Censoring) in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations, for applying the K-M Estimator to estimate the survival function with pointwise confidence intervals. Is it possible to locate a software program that can provide the confidence band for the K-M estimate?*    
+
+For this exercise, we located a dataset, that consists of measures on, $n=69$, different patients who received a heart transplant, taken from the first edition of the text *The Statistical Analysis of Failure Time Data* by Kalbfleisch and Prentice, Appendix I (230-232), published originally in 1980, which can also be found via the following link on the Carnegie Mellon statistics site: http://lib.stat.cmu.edu/datasets/stanford, and has three columns with the following measures:  
 
 * Age: Age of patient in years at the time of heart transplant in years
 * Status: Survival status (1=dead, 0=alive)
 * Days: Survival time in days after transplant (in days)   
-
-\newpage
 
 A preview of this dataset is provided here:
 
@@ -74,24 +76,33 @@ knitr::kable(hdat[c(1,2,8,12,16,32),],  caption="Preview: Heart Transplant Data"
 
 This dataset is right censored, because as shown above, we don't exactly how long patients who currently have a (status=0) will survive, or survived.  
 
-Utilizing this dataset, and the *survival* package in R, we generate the Kaplan-Meier estimates, and visualize the survival function, i.e. $S_{KM}(x_{i:n}) = 1 - F_{KM}(x_{i:n})$, with confidence intervals below:  
+Utilizing this dataset, and the *survival* package in R, we generate the Kaplan-Meier estimates, and visualize the survival function, i.e. $S_{KM}(x_{i:n}) = 1 - F_{KM}(x_{i:n})$, with confidence intervals below, visualized in the first plot below. 
+
+In the second plot, relying on the, the *km.ci* $R$ package which can be found in the CRAN repository, in R which provides a number of confidence intervals and band for the Kaplan-Meier estimator. To compute confidence bands, the *km.ci* package has an option to utilize the estimation procedure detailed in *Confidence bands for a survival curve from censored data*, authored by W.J. Hall, and Jon A. Wellner, in the journal *Biometrika* in 1980. Code to reproduce these plots is provided in the code appendix: 
   
-```{r km_estimate, echo = F, include = T, fig.align='center',fig.height=4}
+```{r km_estimate, echo = F, include = T, fig.align='center',fig.height=3}
+#pointwise intervals
 km_fit <- survfit(Surv(time = Days, event = Status) ~ 1, data = hdat, 
                   type = 'kaplan-meier') #only one group of patients
+conf_band <- km.ci(km_fit, conf.level=0.95, tl=min(hdat$Days), tu=max(hdat$Days), method="hall-wellner")
 km_dat <- data.frame(time=km_fit$time,
-                     survival=km_fit$surv,
-                     upper_ci = km_fit$upper, 
-                     lower_ci = km_fit$lower) #model results
+                     survival_fit=km_fit$surv,
+                     upper_interval = km_fit$upper, 
+                     lower_interval = km_fit$lower,
+                     upper_band = conf_band$upper, 
+                     lower_band = conf_band$lower
+                     ) #model results
 melted_km_dat <- melt(km_dat, id.vars = c('time')) #transform for viz
 ggplot(aes(x=time,y=value, color = variable ,group = variable), data=melted_km_dat) +
   geom_step(size = 1.25) + theme_bw() + xlab('Time (days)') + 
   ylab('Survival Function') + 
-  ggtitle('K-M Estimates with 95% Confidence Bounds: Heart Transplant Patients') + 
-  labs(color='Curve')
+  ggtitle('K-M Estimates: 95% Pointwise Confidence Intervals & Bands') + 
+  labs(color='Curve') + xlim(0,1800)
 ```
 
-Visual analysis of the plot here, indicates that the probability of survival for 500 days, after a heart transplant is approximately 42%, with a 95% confidence range of approximately 30-55%, among patients in this data, when this data was collected decades ago. We hope that survival rates have increased significantly since this study was conducted. 
+Visual analysis of the plot here, indicates that the probability of survival for 500 days, after a heart transplant is approximately 42%, with a 95% confidence range of approximately 30-55%, among patients in this data, when this data was collected decades ago. We hope that survival rates have improved since this study was conducted many years ago. 
+
+The plot also clearly show that the *Hall-Wellner* confidence bands are wider than corresponding pointwise confidence intervals across time. 
 
 ## 2. Kernel and Related Regression with One Explanatory Variable (40%):
 *Locate a data set suitable for nonparametric regression (usually has nonlinear y-x relationship) in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations. Apply all of the procedures below:*  
@@ -235,4 +246,29 @@ Comparison for Kernel Estimators, Nearest neighbor methods and spline regression
 2) *Use all four regression models built in Task #2 to make point-predictions of $Y$ at $x_0$.*  
 3) *Use both bootstrap ($B = 1000$) and jackknife resampling procedures to find a 90% pointwise confidence interval (CI) for the point-prediction. If the resampled distribution of the point-prediction is symmetric, use 5% in each tail to find the CI-bounds. If the distribution is not symmetric, use the HPD-interval idea to find the CI-bound. Compare the results from four regression methods.*  
 
+# Code Appendix
 
+#### Problem 1   
+Exemplary code to produce pointwise confidence intervals, and confidence bands, based on the 'Hall-Wellner' methodology and implemented in the *km.ci* package in $R$:   
+
+```{r km_code_appendix, echo = T, include = F}
+#pointwise intervals
+km_fit <- survfit(Surv(time = Days, event = Status) ~ 1, data = hdat,
+                  type = 'kaplan-meier') #only one group of patients
+#confidence band
+conf_band <- km.ci(km_fit, conf.level=0.95, tl=min(hdat$Days), tu=max(hdat$Days), method="hall-wellner")
+km_dat <- data.frame(time=km_fit$time,
+                     survival=km_fit$surv,
+                     upper_interval = km_fit$upper,
+                     lower_interval = km_fit$lower,
+                     upper_band = conf_band$upper,
+                     lower_band = conf_band$lower
+                     ) #model results
+melted_km_dat <- melt(km_dat, id.vars = c('time')) 
+#data vizualization
+# ggplot(aes(x=time,y=value, color = variable ,group = variable), data=melted_km_dat) +
+#   geom_step(size = 1.25) + theme_bw() + xlab('Time (days)') + 
+#   ylab('Survival Function') + 
+#   ggtitle('K-M Estimates with 95% Pointwise Confidence Intervals: Heart Transplant Patients') + 
+#   labs(color='Curve') + xlim(0,1800)
+```
