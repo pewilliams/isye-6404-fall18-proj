@@ -244,7 +244,42 @@ Comparison for Kernel Estimators, Nearest neighbor methods and spline regression
 ## 4. Resampling Procedures: Bootstrap and Jackknife (25%):
 i)    Exercise the FIVE versions of CIs stated in CP-1 for the survival function S(x) give in 1) above. Compare these CIs. Moreover, focus on the MEDIAN (50th percentile), and evaluate the histogram of the bootstrap-estimates, bootstrap-bias and -standard-error. Comment about the computational results.
 
+(TO ADD: Histogram and CI Table with different methods)
+
+The normal approximation gives a much wider estimate for the Confidence Interval. The Bias corrected bootstrap estimate has a higher estimate for lower Confidence Interval which is in agreement with the qq-plot. 
+
+As seen on the qq-plot, the bootstrap estimates are at the normal approximation line for the upper CI estimate but for lower CI estimate the bootstrap estimates are different from the normal approximation. (Look at t values for standard quantile = +2 and -2)
+
+
+
+Bias
+
+The bias is calculated by taking the difference of the mean of bootstrap estimates and the original estimate from the Kaplan Meier estimator for median survival time. It turns out that the calculated value of bias is -4.32 Days.
+
+This implies that the Kaplan Meier estimator underestimates the median survival time. Similarly, for different quantile estimates (median is 50%) the estimator will underestimate survival time.
+
+In general, the samples of survival times are highly skewed. The bias for mean estimates for our sample turns out to be -9.45 days. Therefore, median is a much better measure of the central location than the mean.
+
+
+
+Standard Error
+
+The Standard error from the bootstrap estimates is 55.13 days. This is in agreement with our normal Confidence Estimates.
+
+
 ii)  Describe how to apply the bootstrap procedures to kernel regression for constructing pointwise CIs for the kernel regression function. You do not need to compute.
+
+Following steps for finding Pointwise Confidence Interval of Kernel Regression
+
+•	Fix Bandwidth and Amplitude
+There will be a different Confidence Interval Estimate for different values of bandwidth and amplitude.
+
+•	Find Bootstrap Samples
+For the given dataset find 10000 bootstrap samples and calculate the probability distribution using Kernel Density estimator.
+
+•	Pointwise Confidence Intervals
+Using the bootstrap estimates of probability density at each point calculate the 95% Confidence Interval at each point.
+
 
 
 # Code Appendix
