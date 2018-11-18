@@ -153,26 +153,22 @@ library(sp)
 Loess models, with varying spans, with degree=1. When interpreting the summary results for the loess models, we will notice that increasing span will decrease the SSR but the curve of the model will become more jagged, making it so that the curve may not be the best representation. Loess is mostly a visual tool to see curves for non-linear curves through the use of data to form the line rather than a specified mathematical model. Loess is based purely on the span and degree of the polynomial (quadratic or linear) for the potential loess model.  For the purposes of demonstrating this technique on our data, we will use loess models with a degree of "1" which indicates a linear smoothing function compared to a quadratic form. Below, different spans are utilized to show the effect the span value has on the appearance of the curve. 
 
 ```{r LoessModels, echo = T, include = T, fig.align='center',fig.height=4}
-loess.model.1=loess(Mortality~Education,span=.25,degree=1)
-loess.model.2=loess(Mortality~Education,span=.5,degree=1)
-loess.model.3=loess(Mortality~Education,span=.7,degree=1)
-loess.model.4=loess(Mortality~Education,span=.9,degree=1)
+loess.model.1=loess(Mortality~Education,span=.25,degree=2)
+loess.model.2=loess(Mortality~Education,span=.5,degree=2)
+loess.model.3=loess(Mortality~Education,span=.7,degree=2)
+loess.model.4=loess(Mortality~Education,span=.9,degree=2)
 ##Below is a summary of the loess model with span of .25 (as suggested by textbook)
 summary(loess.model.1)
 ```
-We will now plot the data points from our our mortality data,   
-
-```{r PlotofMortality, echo = T, include = T, fig.align='center',fig.height=4}
-plot(Mortality~Education)
-```
+We will now plot the data points from our our mortality data as well as the loess smoothing fits.
 
 ```{r Loess Smoothing, echo = T, include = T, fig.align='center',fig.height=4}
 #The loess.smooth() function allows us to make fitted lines for the smoothed lines with varying spans
 #We will plot various functions to be able to see the effect of span on the smoothing line
-loessfit1=loess.smooth(x=Education,y=Mortality,span=.25,degree=1)
-loessfit2=loess.smooth(x=Education,y=Mortality,span=.4,degree=1)
-loessfit3=loess.smooth(x=Education,y=Mortality,span=.6,degree=1)
-loessfit4=loess.smooth(x=Education,y=Mortality,span=.9,degree=1)
+loessfit1=loess.smooth(x=Education,y=Mortality,span=.25,degree=2)
+loessfit2=loess.smooth(x=Education,y=Mortality,span=.4,degree=2)
+loessfit3=loess.smooth(x=Education,y=Mortality,span=.6,degree=2)
+loessfit4=loess.smooth(x=Education,y=Mortality,span=.9,degree=2)
 
 #Recall our plot with the mortality and education data. *****Needs legend*****
 #We will now display the loess fits of varying span onto the plot to see the possible smoothing lines we can make with the loess #function.
@@ -185,8 +181,19 @@ lines(loessfit4$x,loessfit4$y,col="red", lwd=2)
 ```
 There are methods of optimizing the span to reduce sum of squared errors to have the best-fitting loess model. We use 0.25 span for the case that it is the least jagged curve fit, while still holding some obvious grouping of values visually.
 One thing to keep note of is that the loess fit will be useful in visually displaying the relationship between
-the two variables mortality and education, but our sample size is not particularly large, and oftentimes loess fitting requires quite a large sample size to utilize effectively. 
+the two variables mortality and education, but our sample size is not particularly large, and oftentimes loess fitting requires quite a large sample size to utilize effectively. In minimizing sum of squared errors for our loess model, we would normally utilize cross-validation methods to determine an appropriate span, but there are also 'R' functions that automatically perform generalized cross-validation for choosing span. 
 
+```{r Loess Comparison, echo = T, include = T, fig.align='center',fig.height=4}
+#The loess.smooth() function allows us to make fitted lines for the smoothed lines with varying spans
+#We will plot various functions to be able to see the effect of span on the smoothing line
+loessfit1=loess.smooth(x=Education,y=Mortality,span=.25,degree=2)
+library(fANCOVA)
+loessfit2=loess.as(x=Education,y=Mortality,cv="gcv")
+plot(Mortality~Education)
+lines(loessfit1$x,loessfit1$y,col="blue", lwd=2)
+lines(loessfit2$x,loessfit1$y,col="red",lwd=2)
+```
+Comparisons of these two models will be done with the upcoming cross-validation calculations.
 
 
 4) *Smoothing Spline, to the y-x data-fit.* 
@@ -234,10 +241,51 @@ Comparison for Kernel Estimators, Nearest neighbor methods and spline regression
 *Compare the above four methods with a leave-one-out cross-validation procedure.*  
 
 
-For LOESS models, cross-validation is a procedure commonly used to determine an optimally performing bandwidth with which our sum of squared errors would be reduced while retaining a smooth fit along the data (preferable to jagged fits). The way to 
+For LOESS models, cross-validation is a procedure commonly used to determine an optimally performing bandwidth with which our sum of squared errors would be reduced while retaining a smooth fit along the data (preferable to jagged fits). Below are the methods for computing the cross validation criteria for the LOESS models with different spans (0.25 and the automated span from (3.4)
+
+```{r loess cv, include = T, echo = F}
+##Establishing variables for use in loop function
+y=Mortality
+x=Education
+n=length(Mortality)
+cvs=vector(mode="numeric",length(Mortality))
+##Looping procedure of taking one data point out for prediction, and then the calculation of the CV criterion through the formula
+##(1/n) sum(yi-yi_prediction)^2 through each possible iteration
+for(i in (1:n)){
+ y <- Mortality[-i]
+ x <- Education[-i]
+ modelwithoutone <- loess(y~x, span=0.25, degree=2)
+ cvs[i] <- (Mortality[i] - predict(modelwithoutone, newdata=data.frame(x=x[i])))^2
+}
+##Below is our calculation of the mean of the cross-validation values calculated in the vector above, which, according to the formula for CV(h), is the CV criterion value used for comparison among models.
+mean(cvs,na.rm=TRUE)
+
+##Resetting the variables for calculating CV criterion for the automated span model
+y2=Mortality
+x2=Education
+cvs2=vector(mode="numeric",length(Mortality))
+##
+for(i in (1:n)){
+ y2 <- Mortality[-i]
+ x2 <- Education[-i]
+ modelwithoutone2 <- loess.as(Education,Mortality,degree=2,"gcv")
+ cvs2[i] <- (Mortality[i] - predict(modelwithoutone2, newdata=data.frame(x2=x2[i])))^2
+}
+cvs2
+##Calculation of CV criterion for our 2nd model using LOO-CV
+mean(cvs2,na.rm=TRUE)
+```
+Through the leave-one-out procedure, we are able to see that the model with the smoother, automated span (which was optimized through another generalized cross validation procedure) has a lower criterion value, which is proportional to a lower mean squared error compared to the LOESS model with span=0.25. 
 
 For smoothing splines, as stated in the previous question, there is an automated option in the smooth.spline() 'R' function that allows one to perform leave-one-out cross-validation on a model with a spline fitted upon the data. This provides us with a CV criterion value of 2401.714 based on the smoothing functions chosen by R to fit the data.
-
+```{r spline cv, include = T, echo = F}
+#Smoothing Spline Plot using the smooth.spline() function in {stats} package
+plot(Mortality~Education)
+spline.mortality=smooth.spline(Education,Mortality,cv=TRUE)
+lines(spline.mortality, col="purple", lwd=2)
+return(spline.mortality$cv.crit)
+```
+The CV criterion calculated through the leave-one-out procedure (note that this would provide a different value compared to GCV procedure) seems lower compared to those fitted by either of the LOESS models above, showing the capability of splines in creating smoothing lines along the data.
 
 ## 4. Resampling Procedures: Bootstrap and Jackknife (25%):
 i)    Exercise the FIVE versions of CIs stated in CP-1 for the survival function S(x) give in 1) above. Compare these CIs. Moreover, focus on the MEDIAN (50th percentile), and evaluate the histogram of the bootstrap-estimates, bootstrap-bias and -standard-error. Comment about the computational results.
