@@ -294,7 +294,7 @@ for(i in (1:n)){
  y3 = Mortality[-i]
  x3 = Education[-i]
  modelwithoutone <- loess(y3~x3, span=0.25, degree=2)
- cvs3[i] = (Mortality[i] - predict(modelwithoutone3, newdata=data.frame(x=x3[i])))^2
+ cvs3[i] = (Mortality[i] - predict(modelwithoutone3, newdata=data.frame(x3=x3[i])))^2
 }
 ##Below is our calculation of the mean of the cross-validation values calculated in the vector above, which, according to the formula for CV(h), is the CV criterion value used for comparison among models.
 mean(cvs3,na.rm=TRUE)
