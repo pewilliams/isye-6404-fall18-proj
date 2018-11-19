@@ -167,18 +167,15 @@ We will now plot the data points from our our mortality data as well as the loes
 ```{r Loess Smoothing, echo = T, include = T, fig.align='center',fig.height=4}
 #The loess.smooth() function allows us to make fitted lines for the smoothed lines with varying spans
 #We will plot various functions to be able to see the effect of span on the smoothing line
-loessfit1=loess.smooth(x=Education,y=Mortality,span=.25,degree=1)
-loessfit2=loess.smooth(x=Education,y=Mortality,span=.4,degree=1)
-loessfit3=loess.smooth(x=Education,y=Mortality,span=.6,degree=1)
-loessfit4=loess.smooth(x=Education,y=Mortality,span=.9,degree=1)
-#Recall our plot with the mortality and education data. *****Needs legend*****
+#Recall our plot with the mortality and education data.
 #We will now display the loess fits of varying span onto the plot to see the possible smoothing lines we can make with the loess #function.
 #Spans of .25, .4, .6, and .9 are applied for the loess model fits below, with respective colors "blue","green","yellow","red"
 plot(Mortality~Education)
-lines(loessfit1$x,loessfit1$y,col="blue", lwd=2)
-lines(loessfit2$x,loessfit2$y,col="green", lwd=2)
-lines(loessfit3$x,loessfit3$y,col="yellow", lwd=2)
-lines(loessfit4$x,loessfit4$y,col="red", lwd=2)
+j=order(Education)
+lines(Education[j],loess.model.1$fitted[j],col="blue", lwd=2)
+lines(Education[j],loess.model.2$fitted[j],col="green", lwd=2)
+lines(Education[j],loess.model.3$fitted[j],col="yellow", lwd=2)
+lines(Education[j],loess.model.4$fitted[j],col="red", lwd=2)
 ```
 
 There are methods of optimizing the span to reduce sum of squared errors to have the best-fitting loess model. We use 0.25 span for the case that it is the least jagged curve fit, while still holding some obvious grouping of values visually.
@@ -187,12 +184,20 @@ the two variables mortality and education, but our sample size is not particular
 
 ```{r Loess_Comparison, echo = T, include = T, fig.align='center',fig.height=4}
 #The loess.smooth() function allows us to make fitted lines for the smoothed lines with varying spans
+#Here, we will use an R function that automatically calculates a span based upon a generalized cross-validation method,
+#for reasons of comparison between a roughly "optimized" span and our chosen span of 0.25
 #We will plot various functions to be able to see the effect of span on the smoothing line
+
+##Automated span-calculation will require library "fANCOVA" in R
+auto.loess=loess.as(x=Education,y=Mortality,criterion="gcv")
+##summary(auto.loess) provides us with an automatated span of 0.919, so we will use that as a span in our loess smoothing comparison
+
 loessfit1=loess.smooth(x=Education,y=Mortality,span=.25,degree=1)
-loessfit2=loess.as(x=Education,y=Mortality,cv="gcv")
+loess.auto.fit=loess(Mortality~Education,span=0.919,degree=1
+
 plot(Mortality~Education)
-lines(loessfit1$x,loessfit1$y,col="blue", lwd=2)
-lines(loessfit2$x,loessfit2$y,col="red",lwd=2)
+lines(Education[j],loess.model.1$fitted[j],col="blue", lwd=2)
+lines(Education[j],loess.auto.fit2$fitted[j],col="red",lwd=2)
 ```
   
 Comparisons of these two models will be done with the upcoming cross-validation calculations.
