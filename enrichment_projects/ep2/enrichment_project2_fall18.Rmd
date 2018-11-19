@@ -47,7 +47,7 @@ Workload and description of tasks completed by each team member for this project
 \hline
 Team Member & Task Description  \\
 \hline
-Yuan Gao & TBD \\ 
+Yuan Gao & Kernel, Local Polynomial Regression, Part of Regression Comparison \\ 
 Kevin Lee & Loess, Smoothing Splines, Part of Regression Comparison  \\ 
 Akshay Govindaraj & CI for KM Estimator, Median estimate Bias and Standard Error \\ 
 Yijun (Emma) Wan & TBD  \\ 
