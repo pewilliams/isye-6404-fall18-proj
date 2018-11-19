@@ -34,6 +34,7 @@ suppressPackageStartupMessages(library(np))
 suppressPackageStartupMessages(library(locfit))
 suppressPackageStartupMessages(library(stats))
 suppressPackageStartupMessages(library(km.ci))
+suppressPackageStartupMessages(library(boot))
 ```
 
 # Workload Distribution  
@@ -48,7 +49,7 @@ Yuan Gao & TBD \\
 Kevin Lee & Loess, Smoothing Splines, Part of Regression Comparison  \\ 
 Akshay Govindaraj & CI for KM Estimator, Median estimate Bias and Standard Error \\ 
 Yijun (Emma) Wan & TBD  \\ 
-Peter Williams & Code Compilation, Data Visualization \& Latex Formatting \\ 
+Peter Williams & K-M Estimation, Code Compilation, Data Visualization \& Latex Formatting \\ 
 Ruixuan Zhang & Part of Cross-validation Procedure \\ 
 \hline
 \end{tabular}
@@ -102,7 +103,7 @@ ggplot(aes(x=time,y=value, color = variable ,group = variable), data=melted_km_d
 
 Visual analysis of the plot here, indicates that the probability of survival for 500 days, after a heart transplant is approximately 42%, with a 95% confidence range of approximately 30-55%, among patients in this data, when this data was collected decades ago. We hope that survival rates have improved since this study was conducted many years ago. 
 
-The plot also clearly show that the *Hall-Wellner* confidence bands are wider than corresponding pointwise confidence intervals across time. 
+The plot also clearly shows that the *Hall-Wellner* confidence bands are wider than corresponding pointwise confidence intervals across time. 
 
 ## 2. Kernel and Related Regression with One Explanatory Variable (40%):
 *Locate a data set suitable for nonparametric regression (usually has nonlinear y-x relationship) in the field of your interest, e.g., eCommerce, medical study, drug development, supply-chain/logistics operations. Apply all of the procedures below:*  
@@ -183,7 +184,7 @@ There are methods of optimizing the span to reduce sum of squared errors to have
 One thing to keep note of is that the loess fit will be useful in visually displaying the relationship between
 the two variables mortality and education, but our sample size is not particularly large, and oftentimes loess fitting requires quite a large sample size to utilize effectively. In minimizing sum of squared errors for our loess model, we would normally utilize cross-validation methods to determine an appropriate span, but there are also 'R' functions that automatically perform generalized cross-validation for choosing span. 
 
-```{r Loess Comparison, echo = T, include = T, fig.align='center',fig.height=4}
+```{r Loess_Comparison, echo = T, include = T, fig.align='center',fig.height=4}
 #The loess.smooth() function allows us to make fitted lines for the smoothed lines with varying spans
 #We will plot various functions to be able to see the effect of span on the smoothing line
 loessfit1=loess.smooth(x=Education,y=Mortality,span=.25,degree=2)
@@ -191,7 +192,7 @@ library(fANCOVA)
 loessfit2=loess.as(x=Education,y=Mortality,cv="gcv")
 plot(Mortality~Education)
 lines(loessfit1$x,loessfit1$y,col="blue", lwd=2)
-lines(loessfit2$x,loessfit1$y,col="red",lwd=2)
+lines(loessfit2$x,loessfit2$y,col="red",lwd=2)
 ```
 Comparisons of these two models will be done with the upcoming cross-validation calculations.
 
@@ -242,8 +243,8 @@ Comparison for Kernel Estimators, Nearest neighbor methods and spline regression
 
 The cross-validation score CV(h) is a criteria serving as an substitution of MISE, and usually used to determine the best bandwidth for the regression model for achieving the smallest variance of error. Below are the calculations of the cross-validation criteria for the Kernal Regression and Local polynomial Regression.
 
-```{r kernal cv, include = T, echo = F}
-	##CV calculation of Kernal Reg
+```{r kernal_cv, include = T, echo = F}
+##CV calculation of Kernal Reg
   	y=Mortality
   	x=Education
 	n=length(Mortality)
@@ -260,7 +261,7 @@ The cross-validation score CV(h) is a criteria serving as an substitution of MIS
 	mean(cvs,na.rm=TRUE)
 ```
 
-```{r lp cv, include = T, echo = F}
+```{r lp_cv, include = T, echo = F}
 	##CV calculation of Local Polynomial Reg
  	y2=Mortality
 	x2=Education
@@ -282,7 +283,7 @@ As we can see in the result of computing, the CV scores are rather high in Kerna
 
 For LOESS models, cross-validation is a procedure commonly used to determine an optimally performing bandwidth with which our sum of squared errors would be reduced while retaining a smooth fit along the data (preferable to jagged fits). Below are the methods for computing the cross validation criteria for the LOESS models with different spans (0.25 and the automated span from (3.4)
 
-```{r loess cv, include = T, echo = F}
+```{r loess_cv, include = T, echo = F}
 ##Establishing variables for use in loop function
 y3=Mortality
 x3=Education
@@ -317,7 +318,7 @@ Through the leave-one-out procedure, we are able to see that the model with the 
 
 For smoothing splines, as stated in the previous question, there is an automated option in the smooth.spline() 'R' function that allows one to perform leave-one-out cross-validation on a model with a spline fitted upon the data. This provides us with a CV criterion value of 2401.714 based on the smoothing functions chosen by R to fit the data.
 
-```{r spline cv, include = T, echo = F}
+```{r spline_cv, include = T, echo = F}
 #Smoothing Spline Plot using the smooth.spline() function in {stats} package
 plot(Mortality~Education)
 spline.mortality=smooth.spline(Education,Mortality,cv=TRUE)
@@ -365,6 +366,68 @@ For the given dataset find 10000 bootstrap samples and calculate the probability
 
 •	Pointwise Confidence Intervals
 Using the bootstrap estimates of probability density at each point calculate the probability density of the 5%ile and 95%ile estimate from the bootstrap sample distributions and mark them as the lower and upper Confidence Interval estimates respectively.
+
+```{r km_bs_code}
+hdat <- read.csv('data/heart_transplant.csv',header=T,stringsAsFactors=F)
+
+km_fit <- survfit(Surv(time = Days, event = Status) ~ 1, data = hdat, 
+                  type = 'kaplan-meier') #only one group of patients
+km_dat <- data.frame(time=km_fit$time,
+                     survival=km_fit$surv,
+                     upper_ci = km_fit$upper, 
+                     lower_ci = km_fit$lower) #model results
+melted_km_dat <- melt(km_dat, id.vars = c('time')) #transform for viz
+
+#Finding the Standard Error and survival
+s_error = summary(km_fit)$std.err
+
+#Calculate pointwise CI
+CI_lower = km_fit$surv - 1.645*km_fit$std.err
+CI_upper = km_fit$surv + 1.645*km_fit$std.err
+
+km_dat1 <- data.frame(time=km_fit$time,
+                      survival=km_fit$surv,
+                      upper_ci = CI_upper, 
+                      lower_ci = CI_lower)
+
+melted_km_dat1 <- melt(km_dat1, id.vars = c('time'))
+
+# Table for 1st version of CI
+
+
+#ggplot(aes(x=time,y=value, color = variable ,group = variable), data=melted_km_dat1) +
+#  geom_step(size = 1.25) + theme_bw() + xlab('Time (days)') + 
+#  ylab('Survival Function') + 
+#  ggtitle('90% CI using the standard error') + 
+#  labs(color='Curve')
+
+############Function for bootstrapping Estimates for the Median 
+km_est_boot <- function(data, indices){
+  bs_dat <- data[indices,]
+  km_fitbs <- survfit(Surv(time = Days, event = Status) ~ 1, data = bs_dat, 
+                      type = 'kaplan-meier') #only one group of patients
+  km_datbs <- data.frame(time=km_fitbs$time,
+                         survival=km_fitbs$surv) #model results
+  return(median(km_datbs$time))
+  ### INCOMPLETE
+}
+
+B <- 1e04
+bs_CI <- boot(hdat, km_est_boot, R=B,parallel = 'multicore',
+              ncpus = 10)
+#plot(bs_CI)
+
+boot.ci(boot.out = bs_CI,type = 'bca')
+
+# Standard error of Bootstrap samples of Median
+se <- sd(bs_CI$t)
+
+#Bias calculation (Mean of bootstrap estimates - Median of KM estimator)
+bias <- mean(bs_CI$t) - median(km_dat$time)
+
+```
+
+
 
 
 
