@@ -207,8 +207,9 @@ Comparisons of these two models will be done with the upcoming cross-validation 
 ```{r smooth_spline, include = T, echo = F}
 #Smoothing Spline Plot using the smooth.spline() function in {stats} package
 plot(Mortality~Education)
-spline.mortality=smooth.spline(Education,Mortality, cv= F) #why cv=TRUE??
-lines(spline.mortality, col="purple", lwd=2)
+spline.mortality=smooth.spline(Education,Mortality, cv= F)
+j=order(spline.mortality$x)
+lines(spline.mortality$x[j],spline.mortality$y[j], col="purple", lwd=2)
 ```
   
 We can see that using a smoothing spline gives us a relatively linear line with small bumps along it. One thing to notice with the usage of the spline function in R is the ease with which one can apply the method through programs (e.g. R). With the spline function, we can see a fairly clear decreasing linear relationship between the two variables. This makes sense considering the spread of the original data on a scatterplot, but this also falls in line with the loess smoothing used prior. They both show a generally decreasing relationship between the response and predictor variables, but the varying spans in the loess function allow one to control the minute details within the data's distribution one might want to account for. Also, the smooth.spline() function in 'R' is, similarly to usage in interpolating splines, defined through the use of a cubic spline in representing the fit of the model on the data. One significant tool in the smooth.spline function is the option to calculate two different cross-validation critical values (which is minimized to find an effective model of reducing error). If 'cv=TRUE' then the 'R' program will calculate the leave-one-out-cross-validation criterion, while setting it to false will provide a generalized cross-validation criterion, which can be used to help find the best smoother. 
