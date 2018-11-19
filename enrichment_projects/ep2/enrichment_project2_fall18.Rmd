@@ -253,7 +253,7 @@ kernel_reg_cv <- unlist(mclapply(1:nrow(rdat), function(i){
     return(squared_error)
 },mc.cores = 10)) 
 ##calculation of the mean of cvs -- the CV value as defined.
-mean(kernel_reg_cv)
+
 ```
 
 ```{r lp_cv, include = T, echo = F}
@@ -266,13 +266,15 @@ local_poly_cv <- unlist(mclapply(1:nrow(rdat), function(i){
     squared_error <- (Mortality[i] - predict(model, newdata = cv_eval ) )^2
     return(squared_error)
 },mc.cores = 10)) 
-##calculation of the mean of cvs -- the CV value as defined.
-mean(local_poly_cv)
 ```
-
+ 
+ 
 As we can see in the result of computing, the CV scores are rather high in Kernal Regression and Local Polynomial Regression. The scores of these two models are really close to each other, while the CV of Local Polynomial Regression seems slightly lower than that of Kernal Regression (with automated determined bandwidth), which can be due to the stochastic error.
 
-For LOESS models, cross-validation is a procedure commonly used to determine an optimally performing bandwidth with which our sum of squared errors would be reduced while retaining a smooth fit along the data (preferable to jagged fits). Below are the methods for computing the cross validation criteria for the LOESS models with different spans (0.25 and the automated span from (3.4)
+\newpage
+
+For LOESS models, cross-validation is a procedure commonly used to determine an optimally performing bandwidth with which our sum of squared errors would be reduced while retaining a smooth fit along the data (preferable to jagged fits). Below are the methods for computing the cross validation criteria for the LOESS models with different spans (0.25 and the automated span from (3.4):  
+
 
 ```{r loess_cv, include = T, echo = F}
 ##Establishing variables for use in loop function
@@ -284,8 +286,6 @@ loess_cv <- unlist(mclapply(1:nrow(rdat), function(i){
     squared_error <- (Mortality[i] - predict(model, newdata = cv_eval ) )^2
     return(squared_error)
 },mc.cores = 10)) 
-##calculation of the mean of cvs -- the CV value as defined.
-mean(loess_cv,na.rm = T)
 
 
 ##Resetting the variables for calculating CV criterion for the automated span model
@@ -299,8 +299,17 @@ loess_cv_as <- unlist(mclapply(1:nrow(rdat), function(i){
     return(squared_error)
 },mc.cores = 10)) 
 ##calculation of the mean of cvs -- the CV value as defined.
-mean(loess_cv_as, na.rm=T)
+cv_res_df <- data.frame(
+  Model = c('Kernel Regression','Local Polynomial','Loess Span = (.25), Degree = 2','Loess Auto Span, Degree = 2'),
+  SquaredError = round(c(mean(kernel_reg_cv),mean(local_poly_cv),
+                            mean(loess_cv,na.rm = T),mean(loess_cv_as, na.rm=T)),digits = 0),
+  stringsAsFactors = F
+)
+
+knitr::kable(cv_res_df, caption = 'Leave Out One Cross Validation Results',col.names = c('Model Fit Type', 'CV Squared Error'))
+
 ```
+  
 Through the leave-one-out procedure, we are able to see that the model with the smoother, automated span (which was optimized through another generalized cross validation procedure) has a lower criterion value, which is proportional to a lower mean squared error compared to the LOESS model with span=0.25. 
 
 For smoothing splines, as stated in the previous question, there is an automated option in the smooth.spline() 'R' function that allows one to perform leave-one-out cross-validation on a model with a spline fitted upon the data. This provides us with a CV criterion value of 2401.714 based on the smoothing functions chosen by R to fit the data.
