@@ -160,8 +160,6 @@ loess.model.1=loess(Mortality~Education,span=.25,degree=1)
 loess.model.2=loess(Mortality~Education,span=.5,degree=1)
 loess.model.3=loess(Mortality~Education,span=.7,degree=1)
 loess.model.4=loess(Mortality~Education,span=.9,degree=1)
-##Below is a summary of the loess model with span of .25 (as suggested by textbook)
-summary(loess.model.1)
 ```
 
 We will now plot the data points from our our mortality data as well as the loess smoothing fits.
