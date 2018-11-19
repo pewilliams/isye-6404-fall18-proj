@@ -240,44 +240,83 @@ Comparison for Kernel Estimators, Nearest neighbor methods and spline regression
 ## 3. Cross-Validation With the “Leave-One-Out” Procedure (10%):
 *Compare the above four methods with a leave-one-out cross-validation procedure.*  
 
+The cross-validation score CV(h) is a criteria serving as an substitution of MISE, and usually used to determine the best bandwidth for the regression model for achieving the smallest variance of error. Below are the calculations of the cross-validation criteria for the Kernal Regression and Local polynomial Regression.
+
+```{r kernal cv, include = T, echo = F}
+	##CV calculation of Kernal Reg
+  y=Mortality
+  x=Education
+	n=length(Mortality)
+	cvs=vector(mode="numeric",length(Mortality))
+	##Looping procedure of taking one data point out for prediction, and then the calculation of the CV criterion through the formula
+	##(1/n) sum(yi-yi_prediction)^2 through each possible iteration
+	for(i in (1:n)){
+	 y = Mortality[-i]
+	 x = Education[-i]
+	 modelwithoutone <- npreg(txdat=x,tydat=y,gradients = TRUE)
+	 cvs[i] = (Mortality[i] - predict(modelwithoutone, newdata=data.frame(x=x[i])))^2
+	}
+	##calculation of the mean of cvs -- the CV value as defined.
+	mean(cvs,na.rm=TRUE)
+```
+
+```{r lp cv, include = T, echo = F}
+	##CV calculation of Local Polynomial Reg
+  y2=Mortality
+	x2=Education
+	n=length(Mortality)
+	cvs2=vector(mode="numeric",length(Mortality))
+	##Looping procedure of taking one data point out for prediction, and then the calculation of the CV criterion through the formula
+	##(1/n) sum(yi-yi_prediction)^2 through each possible iteration
+	for(i in (1:n)){
+	 y2 = Mortality[-i]
+	 x2 = Education[-i]
+	 modelwithoutone2 <- locfit(y2~x2)
+	 cvs2[i] = (Mortality[i] - predict(modelwithoutone2, newdata=data.frame(x=x2[i])))^2
+	}
+	##calculation of the mean of cvs -- the CV value as defined.
+	mean(cvs2,na.rm=TRUE)
+```
+
+As we can see in the result of computing, the CV scores are rather high in Kernal Regression and Local Polynomial Regression. The scores of these two models are really close to each other, while the CV of Local Polynomial Regression seems slightly lower than that of Kernal Regression (with automated determined bandwidth), which can be due to the stochastic error.
 
 For LOESS models, cross-validation is a procedure commonly used to determine an optimally performing bandwidth with which our sum of squared errors would be reduced while retaining a smooth fit along the data (preferable to jagged fits). Below are the methods for computing the cross validation criteria for the LOESS models with different spans (0.25 and the automated span from (3.4)
 
 ```{r loess cv, include = T, echo = F}
 ##Establishing variables for use in loop function
-y=Mortality
-x=Education
+y3=Mortality
+x3=Education
 n=length(Mortality)
-cvs=vector(mode="numeric",length(Mortality))
+cvs3=vector(mode="numeric",length(Mortality))
 ##Looping procedure of taking one data point out for prediction, and then the calculation of the CV criterion through the formula
 ##(1/n) sum(yi-yi_prediction)^2 through each possible iteration
 for(i in (1:n)){
- y = Mortality[-i]
- x = Education[-i]
- modelwithoutone <- loess(y~x, span=0.25, degree=2)
- cvs[i] = (Mortality[i] - predict(modelwithoutone, newdata=data.frame(x=x[i])))^2
+ y3 = Mortality[-i]
+ x3 = Education[-i]
+ modelwithoutone <- loess(y3~x3, span=0.25, degree=2)
+ cvs3[i] = (Mortality[i] - predict(modelwithoutone3, newdata=data.frame(x=x3[i])))^2
 }
 ##Below is our calculation of the mean of the cross-validation values calculated in the vector above, which, according to the formula for CV(h), is the CV criterion value used for comparison among models.
-mean(cvs,na.rm=TRUE)
+mean(cvs3,na.rm=TRUE)
 
 ##Resetting the variables for calculating CV criterion for the automated span model
-y2=Mortality
-x2=Education
-cvs2=vector(mode="numeric",length(Mortality))
+y4=Mortality
+x4=Education
+cvs4=vector(mode="numeric",length(Mortality))
 ##
 for(i in (1:n)){
- y2 = Mortality[-i]
- x2 = Education[-i]
+ y4 = Mortality[-i]
+ x4 = Education[-i]
  modelwithoutone2 <- loess.as(Education,Mortality,degree=2,"gcv")
- cvs2[i] <- (Mortality[i] - predict(modelwithoutone2, newdata=data.frame(x2=x2[i])))^2
+ cvs4[i] <- (Mortality[i] - predict(modelwithoutone4, newdata=data.frame(x4=x4[i])))^2
 }
-cvs2
 ##Calculation of CV criterion for our 2nd model using LOO-CV
-mean(cvs2,na.rm=TRUE)
+mean(cvs4,na.rm=TRUE)
 ```
 Through the leave-one-out procedure, we are able to see that the model with the smoother, automated span (which was optimized through another generalized cross validation procedure) has a lower criterion value, which is proportional to a lower mean squared error compared to the LOESS model with span=0.25. 
 
 For smoothing splines, as stated in the previous question, there is an automated option in the smooth.spline() 'R' function that allows one to perform leave-one-out cross-validation on a model with a spline fitted upon the data. This provides us with a CV criterion value of 2401.714 based on the smoothing functions chosen by R to fit the data.
+
 ```{r spline cv, include = T, echo = F}
 #Smoothing Spline Plot using the smooth.spline() function in {stats} package
 plot(Mortality~Education)
@@ -285,7 +324,8 @@ spline.mortality=smooth.spline(Education,Mortality,cv=TRUE)
 lines(spline.mortality, col="purple", lwd=2)
 return(spline.mortality$cv.crit)
 ```
-The CV criterion calculated through the leave-one-out procedure (note that this would provide a different value compared to GCV procedure) seems lower compared to those fitted by either of the LOESS models above, showing the capability of splines in creating smoothing lines along the data.
+
+The CV criterion calculated through the leave-one-out procedure (note that this would provide a different value compared to GCV procedure) seems lower compared to those fitted by either of the other three models above, showing the capability of splines in creating smoothing lines along the data. Compared to smoothing spline, Other three models have higher variance and SSE and their fittings are not as good as smoothing spline which has the lowest CV.
 
 ## 4. Resampling Procedures: Bootstrap and Jackknife (25%):
 i)    Exercise the FIVE versions of CIs stated in CP-1 for the survival function S(x) give in 1) above. Compare these CIs. Moreover, focus on the MEDIAN (50th percentile), and evaluate the histogram of the bootstrap-estimates, bootstrap-bias and -standard-error. Comment about the computational results.
