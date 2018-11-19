@@ -244,8 +244,8 @@ The cross-validation score CV(h) is a criteria serving as an substitution of MIS
 
 ```{r kernal cv, include = T, echo = F}
 	##CV calculation of Kernal Reg
-  y=Mortality
-  x=Education
+  	y=Mortality
+  	x=Education
 	n=length(Mortality)
 	cvs=vector(mode="numeric",length(Mortality))
 	##Looping procedure of taking one data point out for prediction, and then the calculation of the CV criterion through the formula
@@ -262,7 +262,7 @@ The cross-validation score CV(h) is a criteria serving as an substitution of MIS
 
 ```{r lp cv, include = T, echo = F}
 	##CV calculation of Local Polynomial Reg
-  y2=Mortality
+ 	y2=Mortality
 	x2=Education
 	n=length(Mortality)
 	cvs2=vector(mode="numeric",length(Mortality))
@@ -293,7 +293,7 @@ cvs3=vector(mode="numeric",length(Mortality))
 for(i in (1:n)){
  y3 = Mortality[-i]
  x3 = Education[-i]
- modelwithoutone <- loess(y3~x3, span=0.25, degree=2)
+ modelwithoutone3 <- loess(y3~x3, span=0.25, degree=2)
  cvs3[i] = (Mortality[i] - predict(modelwithoutone3, newdata=data.frame(x3=x3[i])))^2
 }
 ##Below is our calculation of the mean of the cross-validation values calculated in the vector above, which, according to the formula for CV(h), is the CV criterion value used for comparison among models.
@@ -307,7 +307,7 @@ cvs4=vector(mode="numeric",length(Mortality))
 for(i in (1:n)){
  y4 = Mortality[-i]
  x4 = Education[-i]
- modelwithoutone2 <- loess.as(Education,Mortality,degree=2,"gcv")
+ modelwithoutone4 <- loess.as(Education,Mortality,degree=2,"gcv")
  cvs4[i] <- (Mortality[i] - predict(modelwithoutone4, newdata=data.frame(x4=x4[i])))^2
 }
 ##Calculation of CV criterion for our 2nd model using LOO-CV
