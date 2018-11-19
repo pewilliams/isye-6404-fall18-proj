@@ -46,7 +46,7 @@ Team Member & Task Description  \\
 \hline
 Yuan Gao & TBD \\ 
 Kevin Lee & Loess, Smoothing Splines, Part of Regression Comparison  \\ 
-Akshay Govindaraj & TBD  \\ 
+Akshay Govindaraj & CI for KM Estimator, Median estimate Bias and Standard Error \\ 
 Yijun (Emma) Wan & TBD  \\ 
 Peter Williams & Code Compilation, Data Visualization \& Latex Formatting \\ 
 Ruixuan Zhang & TBD \\ 
@@ -318,13 +318,13 @@ ii)  Describe how to apply the bootstrap procedures to kernel regression for con
 Following steps for finding Pointwise Confidence Interval of Kernel Regression
 
 •	Fix Bandwidth and Amplitude
-There will be a different Confidence Interval Estimate for different values of bandwidth and amplitude.
+There will be a different Confidence Interval Estimate for different values of bandwidth and amplitude. The choice of kernel (eg. Epanechnickov, Normal) is not important. Ideally, we would expect different answers for pointwise Confidence Interval for different choice of kernel, but the difference in the results will not be significant.
 
 •	Find Bootstrap Samples
-For the given dataset find 10000 bootstrap samples and calculate the probability distribution using Kernel Density estimator.
+For the given dataset find 10000 bootstrap samples and calculate the probability distribution using Kernel Density estimator. At the end of this we will have 10000 possible probability distribution functions with the same domain. 
 
 •	Pointwise Confidence Intervals
-Using the bootstrap estimates of probability density at each point calculate the 95% Confidence Interval at each point.
+Using the bootstrap estimates of probability density at each point calculate the probability density of the 5%ile and 95%ile estimate from the bootstrap sample distributions and mark them as the lower and upper Confidence Interval estimates respectively.
 
 
 
