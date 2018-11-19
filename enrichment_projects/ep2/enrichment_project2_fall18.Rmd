@@ -252,10 +252,10 @@ cvs=vector(mode="numeric",length(Mortality))
 ##Looping procedure of taking one data point out for prediction, and then the calculation of the CV criterion through the formula
 ##(1/n) sum(yi-yi_prediction)^2 through each possible iteration
 for(i in (1:n)){
- y <- Mortality[-i]
- x <- Education[-i]
+ y = Mortality[-i]
+ x = Education[-i]
  modelwithoutone <- loess(y~x, span=0.25, degree=2)
- cvs[i] <- (Mortality[i] - predict(modelwithoutone, newdata=data.frame(x=x[i])))^2
+ cvs[i] = (Mortality[i] - predict(modelwithoutone, newdata=data.frame(x=x[i])))^2
 }
 ##Below is our calculation of the mean of the cross-validation values calculated in the vector above, which, according to the formula for CV(h), is the CV criterion value used for comparison among models.
 mean(cvs,na.rm=TRUE)
@@ -266,8 +266,8 @@ x2=Education
 cvs2=vector(mode="numeric",length(Mortality))
 ##
 for(i in (1:n)){
- y2 <- Mortality[-i]
- x2 <- Education[-i]
+ y2 = Mortality[-i]
+ x2 = Education[-i]
  modelwithoutone2 <- loess.as(Education,Mortality,degree=2,"gcv")
  cvs2[i] <- (Mortality[i] - predict(modelwithoutone2, newdata=data.frame(x2=x2[i])))^2
 }
