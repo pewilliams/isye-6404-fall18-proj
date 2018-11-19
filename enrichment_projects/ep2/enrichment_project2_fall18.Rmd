@@ -301,10 +301,9 @@ loess_cv <- unlist(mclapply(1:nrow(rdat), function(i){
 ##Resetting the variables for calculating CV criterion for the automated span model
 loess_cv_as <- unlist(mclapply(1:nrow(rdat), function(i){
     train_data <- rdat[-i,]
-    train_x <- matrix(train_data$Education)
     test_rec <- rdat$Mortality[i]
-    model <- loess.as(y = train_data$Mortality, x = train_x, degree=1, criterion = 'gcv')
-    cv_eval <- matrix(Education[i])
+    model <- loess(Mortality~Education,span=0.919, degree=1, data=  train_data)
+    cv_eval <- data.frame(Education = Education[i])
     squared_error <- (Mortality[i] - predict(model, newdata = cv_eval ) )^2
     return(squared_error)
 },mc.cores = 10))
