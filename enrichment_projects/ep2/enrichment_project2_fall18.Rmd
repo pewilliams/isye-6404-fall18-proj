@@ -153,10 +153,10 @@ Education=rdat$Education
 Loess models, with varying spans, with degree=1. When interpreting the summary results for the loess models, we will notice that increasing span will decrease the SSR but the curve of the model will become more jagged, making it so that the curve may not be the best representation. Loess is mostly a visual tool to see curves for non-linear curves through the use of data to form the line rather than a specified mathematical model. Loess is based purely on the span and degree of the polynomial (quadratic or linear) for the potential loess model.  For the purposes of demonstrating this technique on our data, we will use loess models with a degree of "1" which indicates a linear smoothing function compared to a quadratic form. Below, different spans are utilized to show the effect the span value has on the appearance of the curve. 
 
 ```{r LoessModels, echo = T, include = T, fig.align='center',fig.height=4}
-loess.model.1=loess(Mortality~Education,span=.25,degree=2)
-loess.model.2=loess(Mortality~Education,span=.5,degree=2)
-loess.model.3=loess(Mortality~Education,span=.7,degree=2)
-loess.model.4=loess(Mortality~Education,span=.9,degree=2)
+loess.model.1=loess(Mortality~Education,span=.25,degree=1)
+loess.model.2=loess(Mortality~Education,span=.5,degree=1)
+loess.model.3=loess(Mortality~Education,span=.7,degree=1)
+loess.model.4=loess(Mortality~Education,span=.9,degree=1)
 ##Below is a summary of the loess model with span of .25 (as suggested by textbook)
 summary(loess.model.1)
 ```
@@ -165,10 +165,10 @@ We will now plot the data points from our our mortality data as well as the loes
 ```{r Loess Smoothing, echo = T, include = T, fig.align='center',fig.height=4}
 #The loess.smooth() function allows us to make fitted lines for the smoothed lines with varying spans
 #We will plot various functions to be able to see the effect of span on the smoothing line
-loessfit1=loess.smooth(x=Education,y=Mortality,span=.25,degree=2)
-loessfit2=loess.smooth(x=Education,y=Mortality,span=.4,degree=2)
-loessfit3=loess.smooth(x=Education,y=Mortality,span=.6,degree=2)
-loessfit4=loess.smooth(x=Education,y=Mortality,span=.9,degree=2)
+loessfit1=loess.smooth(x=Education,y=Mortality,span=.25,degree=1)
+loessfit2=loess.smooth(x=Education,y=Mortality,span=.4,degree=1)
+loessfit3=loess.smooth(x=Education,y=Mortality,span=.6,degree=1)
+loessfit4=loess.smooth(x=Education,y=Mortality,span=.9,degree=1)
 #Recall our plot with the mortality and education data. *****Needs legend*****
 #We will now display the loess fits of varying span onto the plot to see the possible smoothing lines we can make with the loess #function.
 #Spans of .25, .4, .6, and .9 are applied for the loess model fits below, with respective colors "blue","green","yellow","red"
@@ -281,7 +281,7 @@ For LOESS models, cross-validation is a procedure commonly used to determine an 
 loess_cv <- unlist(mclapply(1:nrow(rdat), function(i){
     train_data <- rdat[-i,]
     test_rec <- rdat$Mortality[i]
-    model <- loess(Mortality~Education, span=0.25, degree=2, data=  train_data)
+    model <- loess(Mortality~Education, span=0.25, degree=1, data=  train_data)
     cv_eval <- data.frame(Education = Education[i])
     squared_error <- (Mortality[i] - predict(model, newdata = cv_eval ) )^2
     return(squared_error)
@@ -293,7 +293,7 @@ loess_cv_as <- unlist(mclapply(1:nrow(rdat), function(i){
     train_data <- rdat[-i,]
     train_x <- matrix(train_data$Education)
     test_rec <- rdat$Mortality[i]
-    model <- loess.as(y = train_data$Mortality, x = train_x, degree=2, criterion = 'gcv')
+    model <- loess.as(y = train_data$Mortality, x = train_x, degree=1, criterion = 'gcv')
     cv_eval <- matrix(Education[i])
     squared_error <- (Mortality[i] - predict(model, newdata = cv_eval ) )^2
     return(squared_error)
