@@ -49,7 +49,7 @@ Kevin Lee & Loess, Smoothing Splines, Part of Regression Comparison  \\
 Akshay Govindaraj & CI for KM Estimator, Median estimate Bias and Standard Error \\ 
 Yijun (Emma) Wan & TBD  \\ 
 Peter Williams & Code Compilation, Data Visualization \& Latex Formatting \\ 
-Ruixuan Zhang & TBD \\ 
+Ruixuan Zhang & Part of cross-validation procedure \\ 
 \hline
 \end{tabular}
 \end{center}
