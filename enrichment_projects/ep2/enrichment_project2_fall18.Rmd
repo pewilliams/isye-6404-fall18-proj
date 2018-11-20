@@ -308,10 +308,11 @@ loess_cv_as <- unlist(mclapply(1:nrow(rdat), function(i){
     return(squared_error)
 },mc.cores = 10))
 
-#smoothing spline
+#smoothing spline with 
 spline.mortality <- smooth.spline(Education,Mortality,cv=F)
 
 #spline.mortality$cv.crit #2378.62
+#When setting cv=TRUE in the smooth.spline() function, it will return a similar CV criterion value with similar smoothing parameter. 
 
 ##calculation of the mean of cvs -- the CV value as defined.
 cv_res_df <- data.frame(
