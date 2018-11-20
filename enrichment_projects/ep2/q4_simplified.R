@@ -1,6 +1,7 @@
 library(np)
 library(survival)
-hdat <- read.csv('enrichment_projects/ep2/data/heart_transplant.csv',header=T,stringsAsFactors=F)
+library(reshape2)
+hdat <- read.csv('data/heart_transplant.csv',header=T,stringsAsFactors=F)
 
 km_fit <- survfit(Surv(time = Days, event = Status) ~ 1, data = hdat, 
                   type = 'kaplan-meier') #only one group of patients
@@ -48,11 +49,17 @@ B <- 1e04
 bs_CI <- boot(hdat, km_est_boot, R=B,parallel = 'multicore',
               ncpus = 10)
 #plot(bs_CI)
+bs_df <- data.frame(
+  median_estimate = bs_CI$t
+)
 
-boot.ci(boot.out = bs_CI,type = 'bca')
+
+#bca_res <- boot.ci(boot.out = bs_CI,type = 'bca')
 
 # Standard error of Bootstrap samples of Median
 se <- sd(bs_CI$t)
 
 #Bias calculation (Mean of bootstrap estimates - Median of KM estimator)
 bias <- mean(bs_CI$t) - median(km_dat$time)
+
+
